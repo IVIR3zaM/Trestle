@@ -1,0 +1,182 @@
+version: "0.1.0"
+
+# Trestle v0.1.0 build graph.
+#
+# Tiers are ABSTRACT — never a vendor model name (see nodes/T19). The harness
+# maps them; .claude/agents/ is this repo's mapping for Claude Code.
+# The executor MUST honour the declared tier; escalate only after a node's
+# oracle fails twice at its own tier, and record it in the commit.
+#   cheap    — mechanical, exact spec, fast oracle
+#   standard — implementation against a strong oracle
+#   deep     — contracts others build on; correctness no compiler checks
+#
+# gate: human — do not execute unattended.
+#
+# NOTE: most nodes are blocked on decisions.md. Resolve D1, D2 and D5 first —
+# they unblock the majority of the graph.
+
+nodes:
+  # ---- contracts ---------------------------------------------------------
+  - id: T01
+    title: Product contract + privacy threat model
+    deps: []
+    tier: deep
+    gate: human
+    oracle: "bash scripts/check-product-doc.sh"
+    status: todo
+
+  - id: T02
+    title: Plan format spec (graph, loop, hybrid in one schema)
+    deps: [T01]
+    tier: deep
+    gate: human
+    oracle: "npm run test:schema"
+    status: todo
+
+  - id: T03
+    title: Shape-decision rubric (loop vs graph vs both)
+    deps: [T02]
+    tier: deep
+    gate: human
+    oracle: "npm run test:rubric"
+    status: todo
+
+  - id: T04
+    title: Harness adapter contract
+    deps: [T01]
+    tier: deep
+    gate: human
+    oracle: "npm run test:adapter-contract"
+    status: todo
+
+  # ---- analysis ----------------------------------------------------------
+  - id: T05
+    title: Repo survey + code-graph extraction
+    deps: [T01]
+    tier: standard
+    oracle: "npm run test:survey"
+    status: todo
+
+  - id: T06
+    title: Ambiguity detection + question generation
+    deps: [T04, T05]
+    tier: deep
+    oracle: "npm run test:ambiguity"
+    status: todo
+
+  - id: T07
+    title: Plan synthesis
+    deps: [T02, T03, T06, T19]
+    tier: deep
+    oracle: "npm run test:synthesis"
+    status: todo
+
+  - id: T08
+    title: User convention ingestion (skills, agents, standards)
+    deps: [T02, T05]
+    tier: standard
+    oracle: "npm run test:conventions"
+    status: todo
+
+  # ---- output ------------------------------------------------------------
+  - id: T09
+    title: Plan writer + execution instructions
+    deps: [T07, T08]
+    tier: standard
+    oracle: "npm run test:writer"
+    status: todo
+
+  - id: T12
+    title: Status format + reader
+    deps: [T02]
+    tier: standard
+    oracle: "npm run test:status"
+    status: todo
+
+  - id: T10
+    title: Executor — loop shape
+    deps: [T09, T12]
+    tier: standard
+    oracle: "npm run test:exec-loop"
+    status: todo
+
+  - id: T11
+    title: Executor — graph shape
+    deps: [T09, T12]
+    tier: standard
+    oracle: "npm run test:exec-graph"
+    status: todo
+
+  # ---- dashboard ---------------------------------------------------------
+  - id: T13
+    title: Dashboard server (loopback-bound, read-only)
+    deps: [T12]
+    tier: standard
+    oracle: "npm run test:server"
+    status: todo
+
+  - id: T14
+    title: Dashboard — work view
+    deps: [T13]
+    tier: standard
+    oracle: "npm run test:ui-work"
+    status: todo
+
+  - id: T15
+    title: Dashboard — code view with blast radius
+    deps: [T05, T13]
+    tier: standard
+    oracle: "npm run test:ui-code"
+    status: todo
+
+  # ---- token awareness + scheduling --------------------------------------
+  - id: T19
+    title: Model roster + abstract tier resolution
+    deps: [T04]
+    tier: standard
+    oracle: "npm run test:roster"
+    status: todo
+
+  - id: T20
+    title: Budget estimation + token accounting
+    deps: [T02, T19]
+    tier: standard
+    oracle: "npm run test:budget"
+    status: todo
+
+  - id: T21
+    title: Scheduler contract + local backend
+    deps: [T12, T17]
+    tier: deep
+    oracle: "npm run test:scheduler"
+    status: todo
+
+  - id: T22
+    title: Limit-aware backoff and resume
+    deps: [T20, T21]
+    tier: standard
+    oracle: "npm run test:limits"
+    status: todo
+
+  # ---- guarantees + release ---------------------------------------------
+  - id: T16
+    title: Egress test — prove no outbound connections
+    deps: [T01]
+    tier: standard
+    oracle: "npm run test:egress"
+    status: todo
+
+  - id: T17
+    title: CLI + first two harness adapters
+    deps: [T04, T09]
+    tier: standard
+    oracle: "npm run test:cli"
+    status: todo
+
+  - id: T18
+    title: Dogfood — plan a real repo end to end
+    deps: [T10, T11, T14, T15, T16, T17, T20, T22]
+    tier: deep
+    gate: human
+    oracle: "npm test"
+    status: todo

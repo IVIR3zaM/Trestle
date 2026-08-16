@@ -1,0 +1,57 @@
+version: "2.0.0"
+
+# Goal: an internal service is deployable only to one managed cloud. Add a
+# self-hostable container option sharing one implementation, without breaking
+# existing deployments.
+
+nodes:
+  - id: G01
+    title: Architecture contract for two runtimes
+    deps: []
+    tier: deep
+    gate: human
+    oracle: "bash scripts/check-arch-doc.sh"
+    status: done
+
+  - id: G02
+    title: Extract runtime-neutral core
+    deps: [G01]
+    tier: standard
+    oracle: "cd core && npm test"
+    status: done
+
+  - id: G03
+    title: Embedded database store
+    deps: [G02]
+    tier: standard
+    oracle: "cd core && STORE=embedded npm test"
+    status: done
+
+  - id: G04
+    title: Config-file credential provider
+    deps: [G02]
+    tier: cheap
+    oracle: "cd core && npm test -- credentials"
+    status: done
+
+  - id: G05
+    title: Standalone HTTP server
+    deps: [G02, G03, G04]
+    tier: standard
+    oracle: "cd server && npm test"
+    status: todo
+
+  - id: G06
+    title: Container packaging
+    deps: [G05]
+    tier: standard
+    oracle: "bash docker/smoke.sh"
+    status: todo
+
+  - id: G07
+    title: Release
+    deps: [G06]
+    tier: deep
+    gate: human
+    oracle: "bash scripts/test-all.sh"
+    status: todo
