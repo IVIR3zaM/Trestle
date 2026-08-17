@@ -46,7 +46,7 @@ nodes:
     tier: deep
     gate: human
     oracle: "bash scripts/check-product-doc.sh"
-    status: todo
+    status: done
 
   - id: T02
     title: Plan format spec (graph, loop, hybrid in one schema)
