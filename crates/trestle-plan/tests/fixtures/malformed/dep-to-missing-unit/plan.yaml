@@ -1,0 +1,10 @@
+trestle_plan: "1"
+shape: graph
+name: dep-to-missing-unit
+goal: A unit's dependency edge names a unit that does not exist in this plan.
+units:
+  - id: A01
+    title: Do the thing
+    deps: [A99]
+    oracle:
+      command: echo ok

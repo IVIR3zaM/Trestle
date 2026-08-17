@@ -1,0 +1,13 @@
+trestle_plan: "1"
+shape: graph
+name: duplicate-unit-id
+goal: Two units share the same id.
+units:
+  - id: A01
+    title: First
+    oracle:
+      command: echo ok
+  - id: A01
+    title: Second, same id as the first
+    oracle:
+      command: echo ok

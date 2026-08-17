@@ -1,0 +1,7 @@
+trestle_plan: "1"
+shape: graph
+name: unit-without-oracle-gate-or-order
+goal: A graph unit with none of oracle, gate, or order — unverifiable work with no human holding it.
+units:
+  - id: A01
+    title: Unverifiable work

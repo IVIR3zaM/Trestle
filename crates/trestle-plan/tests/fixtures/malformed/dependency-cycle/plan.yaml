@@ -1,0 +1,15 @@
+trestle_plan: "1"
+shape: graph
+name: dependency-cycle
+goal: Two units depend on each other, so neither can ever become ready.
+units:
+  - id: A01
+    title: First
+    deps: [A02]
+    oracle:
+      command: echo ok
+  - id: A02
+    title: Second
+    deps: [A01]
+    oracle:
+      command: echo ok

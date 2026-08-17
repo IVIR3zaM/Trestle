@@ -1,0 +1,9 @@
+trestle_plan: "1"
+shape: graph
+name: done-without-oracle-result
+goal: A unit is marked done in status.yaml without recording the oracle result that proved it.
+units:
+  - id: A01
+    title: Do the thing
+    oracle:
+      command: echo ok

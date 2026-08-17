@@ -1,0 +1,10 @@
+trestle_plan: "1"
+shape: graph
+name: vendor-model-name-in-tier
+goal: A unit's tier names a specific model instead of an abstract level, which stops the plan being portable between harnesses.
+units:
+  - id: A01
+    title: Do the thing
+    tier: modelmax-9-ultra
+    oracle:
+      command: echo ok

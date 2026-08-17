@@ -1,0 +1,4 @@
+plan: done-without-oracle-result
+units:
+  - id: A01
+    status: done

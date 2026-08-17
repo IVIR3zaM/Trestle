@@ -1,0 +1,10 @@
+trestle_plan: "1"
+shape: loop
+name: loop-without-journal
+goal: A loop plan with no journal field — a loop without a journal is a list someone will lose track of.
+oracle:
+  command: echo ok
+units:
+  - id: "1"
+    title: Only item
+    order: 1
