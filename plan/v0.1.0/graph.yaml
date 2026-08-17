@@ -243,7 +243,7 @@ nodes:
     deps: [T00, T01]
     tier: standard
     oracle: "cargo test -p trestle-egress -- --include-ignored"
-    status: todo
+    status: done
 
   - id: T26
     title: Packaging — static binary, Homebrew tap, installer, release CI
