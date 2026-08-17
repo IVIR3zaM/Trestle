@@ -111,7 +111,7 @@ nodes:
     deps: [T00, T01]
     tier: standard
     oracle: "cargo test -p trestle-survey"
-    status: todo
+    status: done
 
   - id: T06
     title: Decision store + question schema + interrogation prompt
