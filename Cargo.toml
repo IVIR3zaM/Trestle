@@ -1,5 +1,10 @@
 [workspace]
-members = ["crates/trestle-cli", "crates/trestle-egress"]
+# A glob, not a list: twelve further nodes each create a crate, and an explicit list
+# means every one of them edits this same line — a merge conflict per node once nodes
+# run in parallel. The list also adds no safety: a crate no node owns is caught by
+# scripts/check-workspace.sh, which compares actual members against the crates named
+# in plan/v0.1.0/graph.yaml. That is the stronger check.
+members = ["crates/*"]
 resolver = "2"
 
 [workspace.package]
