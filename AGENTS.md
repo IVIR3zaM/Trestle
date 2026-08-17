@@ -23,9 +23,15 @@ the bar.
   imagine one.
 - **Two hops maximum.** If finding the code that actually does the work takes more
   than two jumps from the entry point, flatten it.
-- **No `utils`, `helpers`, `common`, `misc`, `base`, `manager`.** These are names for
-  code nobody wanted to place. Put the function next to the thing it serves, or give
-  the module a name that says what it is.
+- **Share code once two callers need it; just don't give it a vague name.** The moment
+  two parts of the work need the same piece, factor it out — that is exactly the
+  second case the rules above ask for, and duplicating it is the worse answer.
+  `utils`, `helpers`, `common`, `misc`, `base` and `manager` are not banned, but they
+  describe where code went rather than what it does, and a module named that way
+  accumulates unrelated things because nothing about the name says what does not
+  belong. Prefer the concept: `paths`, `escaping`, `retry`, `sockets`. If a shared
+  module genuinely has no single concept to name it after, that is usually the signal
+  it is two modules — see §3, *one concept per file*.
 - **Comments explain why, never what.** The code says what. If it doesn't, fix the
   code instead of narrating it.
 - **Delete rather than keep.** No commented-out code, no `_v2` alongside `_old`, no
