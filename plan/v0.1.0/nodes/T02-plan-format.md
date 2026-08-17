@@ -46,6 +46,30 @@ loop-style, or a queue with a few genuine dependency edges.
    fields and old plans must still load.
 5. **Human-editable.** Users will hand-edit these. Prefer a format that survives
    it.
+6. **Machine-*writable*, and this is new.** Under `D5` the agent writes plans in
+   this format, so the schema is not only a reader's contract — it is the surface
+   the agent iterates against. Two consequences: validation errors must name the
+   offending path and say what was expected (an error an agent can act on), and the
+   schema must be strict enough that a plausible-looking bad plan fails. A
+   permissive schema pushes all the load onto T07's gauntlet.
+7. **States the whole lifecycle needs**, not just `todo`/`done`. All of these must
+   exist in the format from the start — retrofitting a status value touches every
+   consumer:
+   - `draft` — a plan written but not yet approved, so the dashboard can render it
+     before the user has committed to it (`D13`, T13/T14)
+   - `verified` — the oracle passed but a configured reviewer hasn't cleared it
+     (`D14`). With no reviewer configured this collapses into `done`.
+   - `done(overridden)` — T11's recorded override
+   - `superseded` — T25's additive amendment
+8. **Provenance on a unit's oracles.** A precondition attached from a user standard
+   carries the rule id and citation it came from (`SEC-04 §14.2`, T08/T27). A
+   reviewer looking at a unit must be able to trace *why* an extra command is
+   attached back to the clause that caused it — otherwise ingested standards become
+   an unexplained pile of commands, which is how people start deleting them.
+9. **Roles are not in the plan.** Who does what (`D14`) is a property of the user's
+   setup, recorded in `.trestle/config.toml`. Putting roles in the plan would make
+   plans non-portable between people — the same mistake as writing a vendor model
+   name into a tier.
 
 ## Deliverables
 
@@ -60,11 +84,18 @@ loop-style, or a queue with a few genuine dependency edges.
 
 ## Acceptance
 
-- `npm run test:schema` — every fixture validates; every fixture round-trips
+- `cargo test -p trestle-plan` — every fixture validates; every fixture round-trips
   (parse → serialise → parse) without loss; unknown keys survive a round trip;
   malformed plans fail with a message naming the offending path.
 - A reviewer can read `PLAN-FORMAT.md` and hand-write a valid plan without
   looking at the schema.
+- **Error-message quality is asserted, not hoped for:** for each of a fixture set
+  of malformed plans, the error names the offending path and the expectation. This
+  is the interface the agent converges against (`D5`), so a bad message is a real
+  defect, not a cosmetic one.
+- Multi-repo is not implemented and must not be precluded: the schema reserves how
+  a unit names its repo, and a v0.2.0 multi-repo plan would not require a breaking
+  change. Assert by writing one such plan as a forward-compatibility fixture.
 
 ## Out of scope
 

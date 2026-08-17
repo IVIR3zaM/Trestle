@@ -1,4 +1,4 @@
 .PHONY: status
 
 status:
-	@node scripts/status.mjs
+	@python3 scripts/status.py

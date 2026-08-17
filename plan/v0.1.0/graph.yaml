@@ -12,8 +12,16 @@ version: "0.1.0"
 #
 # gate: human — do not execute unattended.
 #
-# NOTE: most nodes are blocked on decisions.md. Resolve D1, D2 and D5 first —
-# they unblock the majority of the graph.
+# ARCHITECTURE (D5, resolved): control is inverted. Trestle performs no
+# inference and does not drive the agent — the agent drives Trestle from inside
+# its own interface, calling a deterministic command surface. Trestle is
+# analysis + schemas + prompts + a viewer. See decisions.md D5.
+#
+# LANGUAGE (D6, resolved): Rust, single static binary. Oracles are cargo
+# commands; a crate named in an oracle is created by the node that owns it.
+#
+# NOTE: D2 (plan format) is still open and blocks most of the graph.
+# Resolve it before starting T02.
 
 nodes:
   # ---- contracts ---------------------------------------------------------
@@ -30,23 +38,23 @@ nodes:
     deps: [T01]
     tier: deep
     gate: human
-    oracle: "npm run test:schema"
+    oracle: "cargo test -p trestle-plan"
     status: todo
 
   - id: T03
     title: Shape-decision rubric (loop vs graph vs both)
-    deps: [T02]
+    deps: [T02, T05]
     tier: deep
     gate: human
-    oracle: "npm run test:rubric"
+    oracle: "cargo test -p trestle-shape"
     status: todo
 
   - id: T04
-    title: Harness adapter contract
+    title: Harness integration contract
     deps: [T01]
     tier: deep
     gate: human
-    oracle: "npm run test:adapter-contract"
+    oracle: "cargo test -p trestle-integration"
     status: todo
 
   # ---- analysis ----------------------------------------------------------
@@ -54,108 +62,131 @@ nodes:
     title: Repo survey + code-graph extraction
     deps: [T01]
     tier: standard
-    oracle: "npm run test:survey"
+    oracle: "cargo test -p trestle-survey"
     status: todo
 
   - id: T06
-    title: Ambiguity detection + question generation
-    deps: [T04, T05]
+    title: Decision store + question schema + interrogation prompt
+    deps: [T02, T05]
     tier: deep
-    oracle: "npm run test:ambiguity"
+    oracle: "cargo test -p trestle-decisions"
     status: todo
 
   - id: T07
-    title: Plan synthesis
+    title: Synthesis prompt + plan validation gauntlet
     deps: [T02, T03, T06, T19]
     tier: deep
-    oracle: "npm run test:synthesis"
+    oracle: "cargo test -p trestle-plan --test gauntlet"
     status: todo
 
   - id: T08
-    title: User convention ingestion (skills, agents, standards)
+    title: In-repo convention discovery + classification
     deps: [T02, T05]
     tier: standard
-    oracle: "npm run test:conventions"
+    oracle: "cargo test -p trestle-conventions"
+    status: todo
+
+  - id: T27
+    title: External standards ingestion + distillation store
+    deps: [T08]
+    tier: deep
+    gate: human
+    oracle: "cargo test -p trestle-standards"
     status: todo
 
   # ---- output ------------------------------------------------------------
   - id: T09
-    title: Plan writer + execution instructions
-    deps: [T07, T08]
+    title: Plan writer (atomic, validating, non-clobbering, drafts)
+    deps: [T07, T08, T27]
     tier: standard
-    oracle: "npm run test:writer"
+    oracle: "cargo test -p trestle-plan --test writer"
     status: todo
 
   - id: T12
-    title: Status format + reader
+    title: Status + journal store
     deps: [T02]
     tier: standard
-    oracle: "npm run test:status"
+    oracle: "cargo test -p trestle-status"
     status: todo
 
   - id: T10
-    title: Executor — loop shape
+    title: Ready-set computation (trestle next)
     deps: [T09, T12]
     tier: standard
-    oracle: "npm run test:exec-loop"
+    oracle: "cargo test -p trestle-exec --test next"
     status: todo
 
   - id: T11
-    title: Executor — graph shape
+    title: Oracle runner (trestle verify) + review veto — sole writer of done
+    deps: [T09, T12]
+    tier: deep
+    oracle: "cargo test -p trestle-exec --test verify"
+    status: todo
+
+  - id: T25
+    title: Plan amend — additive re-planning of a live plan
     deps: [T09, T12]
     tier: standard
-    oracle: "npm run test:exec-graph"
+    oracle: "cargo test -p trestle-plan --test amend"
     status: todo
 
   # ---- dashboard ---------------------------------------------------------
   - id: T13
-    title: Dashboard server (loopback-bound, read-only)
+    title: Dashboard server (loopback, read-only, embedded assets, auto-start)
     deps: [T12]
     tier: standard
-    oracle: "npm run test:server"
+    oracle: "cargo test -p trestle-ui --test server"
     status: todo
 
   - id: T14
-    title: Dashboard — work view
+    title: Dashboard — drafts, work view, multi-agent workflow
     deps: [T13]
     tier: standard
-    oracle: "npm run test:ui-work"
+    oracle: "cargo test -p trestle-ui --test work_view"
     status: todo
 
   - id: T15
     title: Dashboard — code view with blast radius
     deps: [T05, T13]
     tier: standard
-    oracle: "npm run test:ui-code"
+    oracle: "cargo test -p trestle-ui --test code_view"
     status: todo
 
-  # ---- token awareness + scheduling --------------------------------------
+  # ---- token awareness ---------------------------------------------------
   - id: T19
-    title: Model roster + abstract tier resolution
+    title: Abstract tiers + per-integration mapping (advisory)
     deps: [T04]
     tier: standard
-    oracle: "npm run test:roster"
+    oracle: "cargo test -p trestle-integration --test tiers"
     status: todo
 
   - id: T20
-    title: Budget estimation + token accounting
+    title: Budget estimation (pre-run, estimate-only)
     deps: [T02, T19]
     tier: standard
-    oracle: "npm run test:budget"
+    oracle: "cargo test -p trestle-budget"
     status: todo
 
-  - id: T21
-    title: Scheduler contract + local backend
-    deps: [T12, T17]
-    tier: deep
-    oracle: "npm run test:scheduler"
-    status: todo
-
-  - id: T22
-    title: Limit-aware backoff and resume
-    deps: [T20, T21]
+  # ---- surfaces ----------------------------------------------------------
+  - id: T17
+    title: CLI command surface
+    deps: [T05, T08, T09, T10, T11, T20]
     tier: standard
-    oracle: "npm run test:limits"
+    oracle: "cargo test -p trestle-cli"
+    status: todo
+
+  - id: T23
+    title: trestle init — integration selection + role assignment
+    deps: [T04, T17]
+    tier: standard
+    oracle: "cargo test -p trestle-cli --test init"
+    status: todo
+
+  - id: T24
+    title: MCP server over the CLI surface
+    deps: [T17]
+    tier: standard
+    oracle: "cargo test -p trestle-mcp"
     status: todo
 
   # ---- guarantees + release ---------------------------------------------
@@ -163,20 +194,20 @@ nodes:
     title: Egress test — prove no outbound connections
     deps: [T01]
     tier: standard
-    oracle: "npm run test:egress"
+    oracle: "cargo test -p trestle-egress -- --include-ignored"
     status: todo
 
-  - id: T17
-    title: CLI + first two harness adapters
-    deps: [T04, T09]
+  - id: T26
+    title: Packaging — static binary, Homebrew tap, installer, release CI
+    deps: [T17]
     tier: standard
-    oracle: "npm run test:cli"
+    oracle: "bash scripts/check-release-artifacts.sh"
     status: todo
 
   - id: T18
-    title: Dogfood — plan a real repo end to end
-    deps: [T10, T11, T14, T15, T16, T17, T20, T22]
+    title: Dogfood — plan a real repo end to end, from the editor
+    deps: [T10, T11, T14, T15, T16, T20, T23, T24, T25, T26, T27]
     tier: deep
     gate: human
-    oracle: "npm test"
+    oracle: "cargo test --workspace"
     status: todo

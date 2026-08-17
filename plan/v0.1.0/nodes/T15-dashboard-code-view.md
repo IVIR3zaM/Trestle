@@ -14,6 +14,11 @@ This is the distinctive view. The work view shows what the agent will do; this
 one shows what it will do it *to*, and it is where over-broad plans become
 obvious. Scope creep is far easier to see than to read.
 
+It matters more under `D5`, not less. When Trestle drove the agent it could refuse
+to dispatch an over-broad unit; now it can only advise (T10). **This view is where
+the human catches what the tool can no longer prevent** — which makes it the
+strongest remaining check on a bad plan before it runs.
+
 ## Requirements
 
 - Module-level nodes with real import edges from T05 — not a file tree.
@@ -26,9 +31,9 @@ obvious. Scope creep is far easier to see than to read.
 
 ## Acceptance
 
-- `npm run test:ui-code` — renders from a survey fixture; blast radius matches an
-  independently computed expected set; partial-analysis banner appears for a repo
-  with an unsupported language.
+- `cargo test -p trestle-ui --test code_view` — renders from a survey fixture;
+  blast radius matches an independently computed expected set; partial-analysis
+  banner appears for a repo with an unsupported language.
 - On a multi-module fixture with a plan scoped to one module, that module shows
   as touched, its dependents as transitively affected, and everything else as
   untouched. An overlay that marks the whole repo affected is a failure, not a

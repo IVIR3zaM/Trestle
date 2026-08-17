@@ -6,9 +6,9 @@ description: Execute the next ready node of the Trestle build graph in plan/v0.1
 # Trestle graph executor (bootstrap)
 
 **This is scaffolding, and it is meant to be temporary.** Trestle's whole purpose
-is to generate executors like this one. Until it can, its own development runs on
-a hand-written version. When T09 and T11 land, this file should be replaced by
-what Trestle emits for itself — that swap is the real dogfooding milestone.
+is to install executors like this one. Until it can, its own development runs on a
+hand-written version. When T09, T10, T11 and T23 land, run `trestle init` on this
+repo and let it replace this file — that swap is the real dogfooding milestone.
 
 Do exactly one pass of the loop below, then stop and report.
 
