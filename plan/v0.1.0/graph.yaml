@@ -37,7 +37,7 @@ nodes:
     deps: []
     tier: cheap
     oracle: "bash scripts/check-workspace.sh"
-    status: todo
+    status: done
 
   # ---- contracts ---------------------------------------------------------
   - id: T01
