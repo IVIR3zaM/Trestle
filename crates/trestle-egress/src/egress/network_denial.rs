@@ -66,10 +66,34 @@ fn wrap(program: &str, args: &[String]) -> Result<Command, String> {
         cmd.arg("-f").arg(profile_path).arg(&program).args(args);
         Ok(cmd)
     } else if cfg!(target_os = "linux") {
+        // `env` re-establishes the toolchain environment *inside* the namespace.
+        // sudo scrubs the environment and substitutes its own secure_path, which
+        // on a stock ubuntu-latest names neither the rustup shims nor the
+        // toolchain, so resolving the program alone is not enough: cargo then
+        // shells out to `rustc` and that lookup fails the same way. Setting the
+        // variables via `env` rather than Command::env is required because
+        // Command::env would be applied to sudo, which discards it.
+        //
+        // Only PATH and the toolchain's own locations are forwarded. This is not
+        // a blanket environment passthrough: nothing here grants network access,
+        // and keeping the set explicit means a future addition is a visible
+        // decision rather than an inherited surprise.
         let mut cmd = Command::new("sudo");
-        cmd.args(["-n", "unshare", "--net", "--"])
-            .arg(&program)
-            .args(args);
+        cmd.args(["-n", "unshare", "--net", "--", "env"]);
+        for key in [
+            "PATH",
+            "HOME",
+            "CARGO_HOME",
+            "RUSTUP_HOME",
+            "RUSTUP_TOOLCHAIN",
+        ] {
+            if let Some(value) = std::env::var_os(key) {
+                let mut assignment = std::ffi::OsString::from(format!("{key}="));
+                assignment.push(&value);
+                cmd.arg(assignment);
+            }
+        }
+        cmd.arg(&program).args(args);
         Ok(cmd)
     } else {
         Err(format!(
