@@ -23,7 +23,7 @@ check_tool() {
 # Define the four core checks that must run in CI
 declare -a CHECKS=(
     "cargo fmt --check"
-    "cargo clippy -- -D warnings"
+    "cargo clippy --all-targets -- -D warnings"
     "cargo test --workspace"
     "cargo deny check"
 )
@@ -200,7 +200,7 @@ open(path, "w").write(source + "\nfn planted_long() -> u32 {\n    let mut n = 0u
 EOF
 assert_violation "long function fails clippy::too_many_lines" \
     "clippy::too_many_lines" "$scratch" \
-    cargo clippy -- -D warnings
+    cargo clippy --all-targets -- -D warnings
 
 # Test 3: a function over the `cognitive_complexity` threshold fails clippy.
 echo "  Testing clippy cognitive_complexity violation..."
@@ -218,7 +218,7 @@ open(path, "w").write(source + "\nfn planted_complex(x: i64) -> i64 {\n    let m
 EOF
 assert_violation "complex function fails clippy::cognitive_complexity" \
     "clippy::cognitive.complexity" "$scratch" \
-    cargo clippy -- -D warnings
+    cargo clippy --all-targets -- -D warnings
 
 # Test 4: `-D warnings` escalates an ordinary rustc warning to a hard failure.
 # This is a different property from tests 2 and 3 — those prove two specific
@@ -230,7 +230,7 @@ cat >> "$scratch/crates/trestle-cli/src/main.rs" << 'EOF'
 fn never_called() {}
 EOF
 assert_violation "dead code fails under -D warnings" "dead_code" "$scratch" \
-    cargo clippy -- -D warnings
+    cargo clippy --all-targets -- -D warnings
 
 # Test 5: a dependency the policy bans fails `cargo deny check bans`.
 #
