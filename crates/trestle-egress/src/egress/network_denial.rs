@@ -59,15 +59,16 @@ fn connect_probe_script(host: &str, port: u16) -> String {
 /// `sudo -n` turns a missing passwordless sudo into an immediate failure
 /// instead of a hang on a password prompt.
 fn wrap(program: &str, args: &[String]) -> Result<Command, String> {
+    let program = absolute_program(program)?;
     if cfg!(target_os = "macos") {
         let profile_path = write_macos_profile()?;
         let mut cmd = Command::new("sandbox-exec");
-        cmd.arg("-f").arg(profile_path).arg(program).args(args);
+        cmd.arg("-f").arg(profile_path).arg(&program).args(args);
         Ok(cmd)
     } else if cfg!(target_os = "linux") {
         let mut cmd = Command::new("sudo");
         cmd.args(["-n", "unshare", "--net", "--"])
-            .arg(program)
+            .arg(&program)
             .args(args);
         Ok(cmd)
     } else {
@@ -76,6 +77,42 @@ fn wrap(program: &str, args: &[String]) -> Result<Command, String> {
             std::env::consts::OS
         ))
     }
+}
+
+/// Resolves a bare program name against *this* process's `PATH` before the
+/// denial wrapper runs it.
+///
+/// `sudo` replaces `PATH` with its own `secure_path`, which on a stock
+/// `ubuntu-latest` contains no `~/.cargo/bin` and no rustup toolchain
+/// directory. Handing `sudo -n unshare -- cargo` a bare name therefore failed
+/// with `unshare: failed to execute cargo: No such file or directory` — the
+/// wrapper never reached a network check at all, so the test reported a denial
+/// failure for something that was not about the network. Resolving here keeps
+/// that class of failure out of the results entirely.
+///
+/// `$CARGO` is preferred for cargo because it names the exact toolchain binary
+/// that launched this test, rather than whichever shim `PATH` happens to find.
+fn absolute_program(program: &str) -> Result<PathBuf, String> {
+    if program.contains('/') {
+        return Ok(PathBuf::from(program));
+    }
+    if program == "cargo" {
+        if let Some(cargo) = std::env::var_os("CARGO") {
+            return Ok(PathBuf::from(cargo));
+        }
+    }
+    let path = std::env::var_os("PATH")
+        .ok_or_else(|| "PATH is unset, so no program name can be resolved".to_string())?;
+    std::env::split_paths(&path)
+        .map(|dir| dir.join(program))
+        .find(|candidate| candidate.is_file())
+        .ok_or_else(|| {
+            format!(
+                "'{program}' was not found on PATH, so the denial wrapper cannot run it. \
+                 The wrapper needs an absolute path because sudo replaces PATH with its \
+                 own secure_path."
+            )
+        })
 }
 
 /// `deny default` with no network-outbound/network-inbound rule anywhere in
