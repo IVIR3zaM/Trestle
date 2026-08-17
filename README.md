@@ -281,6 +281,19 @@ code to their respective vendors — that's what they are. Trestle neither adds 
 that nor can prevent it. What Trestle guarantees is that *it* adds no new
 recipient of your code.
 
+Two further limits, named rather than buried. **`trestle verify` runs *your* oracle
+command** — an arbitrary shell command out of your own plan file — and Trestle does
+not sandbox it; if your test suite reaches the network, so does that command. What
+Trestle promises there is provenance, not containment: the command is yours, it lives
+in a file that's in git, and it's reviewable before it ever runs. And **Trestle's own
+output enters your agent's context** the moment your agent reads it, so it travels
+wherever that context already travels.
+
+Those two, and the fact that plans travel with your repository when you push it, are
+enumerated as **gaps** in [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) — a channel
+with no automated check behind it is named as a gap rather than left off the list. The
+full contract is [`docs/PRODUCT.md`](docs/PRODUCT.md).
+
 ## Harness-agnostic
 
 Trestle installs into the agent you already have:
