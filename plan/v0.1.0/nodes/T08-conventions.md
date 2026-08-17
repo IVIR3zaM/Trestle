@@ -78,6 +78,10 @@ classified unenforceable, and says which command it couldn't find.
   admitting up front that the rule can't be checked.
 - Trestle's own marked blocks in `AGENTS.md` / `copilot-instructions.md` are not
   ingested — asserted on a post-`init` fixture repo.
+- **This repo's own `AGENTS.md` is a fixture.** Its §5 table states which of its
+  rules are machine-checked and which are review-only; classification must arrive at
+  the same answer. It is the one input where a hand-written ground truth already
+  exists, which makes it the cheapest real test available here.
 - Convention locations come from the T04 integration manifests; adding a location
   to a manifest is picked up with no change here.
 

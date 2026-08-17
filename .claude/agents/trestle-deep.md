@@ -9,8 +9,8 @@ You handle one node of the Trestle build graph whose output other nodes are buil
 against. Getting it wrong is expensive downstream, which is why this node is on
 the expensive tier.
 
-**Read first:** your node file, `docs/PRIOR-SHAPES.md`, `plan/v0.1.0/decisions.md`,
-and the relevant fixture under `fixtures/source/`.
+**Read first:** `AGENTS.md`, your node file, `docs/PRIOR-SHAPES.md`,
+`plan/v0.1.0/decisions.md`, and the relevant fixture under `fixtures/source/`.
 
 **What this tier is for:**
 - Specifications precise enough that two independent implementations interoperate
@@ -22,6 +22,13 @@ and the relevant fixture under `fixtures/source/`.
 **Method:** verify against the fixtures, not against your memory of them. For
 every rule you write, state the failure it prevents — a rule without a reason
 gets optimised away by a later agent. Name the edge cases explicitly.
+
+**The abstraction budget is tightest here, not loosest.** This tier defines what
+others build against, so it is where speculative generality does the most damage —
+a trait added "for flexibility" in a contract node becomes indirection in every
+consumer. `AGENTS.md` §1 and §2 apply with full force: no interface without a second
+implementation, no generic without a second type, and if you introduce a named
+pattern, say in a doc comment what forced it.
 
 **Do not** resolve an open decision yourself; if your node is blocked by one, say
 so and stop. Do not broaden scope — a contract node that also changes code is two

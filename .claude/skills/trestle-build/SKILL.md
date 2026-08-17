@@ -50,9 +50,14 @@ Claude Code mapping, and it is exactly the layer T19 specifies for every harness
 | `standard` | `trestle-standard` | sonnet |
 | `deep` | `trestle-deep` | opus |
 
-Spawn with the Agent tool. Give the subagent the node file path and the oracle
-command — **not** the whole plan. The node file is self-contained, and keeping it
-that way is what holds per-node cost flat.
+Spawn with the Agent tool. Give the subagent the node file path, the oracle
+command, and `AGENTS.md` — **not** the whole plan. The node file is self-contained,
+and keeping it that way is what holds per-node cost flat.
+
+`AGENTS.md` is the exception worth passing every time: it carries the code rules
+(simplicity over abstraction, patterns only when they pay, **test first**) and a
+subagent that hasn't read it will produce layered code that passes its oracle and
+still has to be rewritten.
 
 **Escalation:** if the oracle fails twice at the declared tier, retry once one
 tier up and note it in the commit body. Never escalate past `deep`. Never
@@ -91,6 +96,8 @@ user. Brief.
 
 - Never modify a node file to make it easier to pass.
 - Never edit a node's oracle to make it green.
+- Never delete or weaken a test to go green — the rule in `AGENTS.md` §4 applies to
+  every test, not only to oracles.
 - Never mark `done` without the oracle passing in the main worktree.
 - Never resolve a `decisions.md` question on the user's behalf.
 - Never delete or rewrite a test to make a suite pass.

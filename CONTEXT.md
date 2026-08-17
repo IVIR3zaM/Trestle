@@ -4,6 +4,11 @@ Self-contained briefing for picking Trestle up in a fresh session. Read this,
 then `README.md`, then `plan/v0.1.0/README.md`. You should not need the
 conversation this came from.
 
+Before writing any code, read [`AGENTS.md`](AGENTS.md) — simplicity over
+abstraction, patterns only when they pay for themselves, and test-first. Half of it
+is enforced by lints and half of it isn't, and the half that isn't is the half that
+matters.
+
 ## What Trestle is, in one paragraph
 
 A local, harness-agnostic planner for AI-assisted engineering work. Point it at a
@@ -215,6 +220,11 @@ After T01, three tracks open in parallel — T04, T05 and T16.
   holding all three roles must produce a tree, a state machine and a dashboard
   indistinguishable from one with no role model at all. T04, T10, T11, T14 and T23
   each assert this from their own side.
+- **Don't let the codebase become the thing this tool complains about.** `AGENTS.md`
+  exists because agents default to layered, interface-heavy designs that pass their
+  oracle and still have to be rewritten. It is also this repo's own fixture for T08:
+  when Trestle can plan itself, it should classify those rules by enforceability and
+  arrive at the table in `AGENTS.md` §5. If it doesn't, that's a T08 bug worth having.
 - **No capability may exist only over MCP.** The CLI is the substrate; the MCP
   server is a wrapper. Otherwise the no-MCP harnesses become second-class and T16
   gains a surface it can't test.

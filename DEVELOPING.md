@@ -28,6 +28,10 @@ a tool that plans repos in any language is the thing `D6` rejected.
 The workspace doesn't exist yet. T02 creates the first crate; each node's oracle
 names the crate it owns, and a node creates the crate its oracle names.
 
+The lints that enforce half of `AGENTS.md` — `cargo fmt --check`,
+`cargo clippy -- -D warnings`, `cargo deny` — need a workspace to live in, so
+whichever node creates it owns that config too.
+
 ## Start here
 
 ### 1. Answer the blocking decision
@@ -113,6 +117,11 @@ tell you it read §26 correctly.
 through T17, so the last third of the graph is unusually parallel once it lands.
 
 ## Working rules
+
+**How to write the code** — simplicity over abstraction, patterns only when they pay
+for themselves, and test-first — is in [`AGENTS.md`](AGENTS.md). Read it before your
+first edit. The rules below are about working the *graph*, which is a different
+thing.
 
 Carried from `docs/PRIOR-SHAPES.md`, and non-negotiable here:
 
