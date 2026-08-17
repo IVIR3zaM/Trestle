@@ -15,7 +15,8 @@ in the previous design. It has about thirty seconds to establish that Trestle fi
 the setup the user already has, and it does that by writing files into that setup
 rather than asking the user to come to Trestle.
 
-Blocked on **D1** (which integrations), **D10** (data or code), **D14** (roles).
+Blocked on **D10** (manifest-and-templates, or a Rust trait per harness). `D1`
+(which integrations) and `D14` (roles) are resolved.
 
 ## Detection proposes; the user decides
 

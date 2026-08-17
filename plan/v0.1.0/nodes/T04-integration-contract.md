@@ -15,7 +15,9 @@ An integration is therefore not a client. It is the set of files that teach one
 harness the Trestle workflow, plus an honest declaration of what that harness can
 and cannot do.
 
-Blocked on **D1** (which integrations ship) and **D10** (data or code).
+Blocked on **D10** (manifest-and-templates, or a Rust trait per harness). `D1` is
+resolved: three integrations plus a `generic` fallback, selectable rather than
+merely detected.
 
 ## What changed, and why this node is not the old one
 
