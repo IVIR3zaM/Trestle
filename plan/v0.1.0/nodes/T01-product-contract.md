@@ -66,6 +66,10 @@ this node predates and which must appear in the table:
 - **Update checks** (T26). None, ever — not opt-in, not weekly. `--version` prints
   a version; it does not ask anyone whether that version is current.
 
+**`scripts/check-product-doc.sh`** — this node's own oracle, which does not exist
+until this node writes it. Write it before the documents, watch it fail, then write
+until it passes. It must name which assertion failed, not merely that one did.
+
 Be honest about the boundary in the user-facing copy: Trestle adds no new
 recipient of your code, and cannot stop the one you already chose. Under `D5` the
 user's agent is now the thing *calling* Trestle rather than the thing Trestle

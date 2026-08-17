@@ -68,6 +68,11 @@ silently downgrade.
 Run the node's oracle **yourself**, in the main worktree, after the subagent
 returns. The subagent's own report is not evidence.
 
+**A node whose oracle script does not exist yet must write it** — that is part of the
+node, not a missing prerequisite. If the oracle command is absent, do not treat it as
+a blocker and do not invent a substitute command: the node's Deliverables say to
+create it. Never mark a node done against an oracle you had to improvise.
+
 If it fails after escalation: set the node `blocked`, append a diagnosis to
 `decisions.md`, leave the work uncommitted, and stop. Do not start another node
 after a hard failure.

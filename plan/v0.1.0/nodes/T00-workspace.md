@@ -51,6 +51,16 @@ not just that it builds.
 **`trestle --version`** reporting version, target triple and git SHA (T26 needs it;
 it is three lines here and a retrofit later).
 
+**Its own oracle, `scripts/check-workspace.sh`.** This node's oracle does not exist
+until this node writes it — write it *first*, watch it fail against the empty repo,
+then build until it passes (`AGENTS.md` §4). It must exit non-zero on any failure,
+and it must report *which* check failed rather than only that something did.
+
+If `cargo deny` or another tool it calls is not installed, the script **fails with
+the install command**, and never skips the check silently. A guard that quietly
+no-ops when its tool is missing is worse than no guard, because CI stays green while
+checking nothing.
+
 ## Acceptance
 
 - `bash scripts/check-workspace.sh` — `cargo fmt --check`, `cargo clippy -- -D
