@@ -158,36 +158,39 @@ then stop*.
 
 ## Current state
 
-Nothing is built. `plan/v0.1.0/` has 25 nodes; `make status` reports
-`0/25 done · 1 ready (0 unattended, 1 gated)`.
+Nothing is built. `plan/v0.1.0/` has 27 nodes; `make status` reports
+`0/27 done · 2 ready (1 unattended, 1 gated)`.
 
-That reading is correct and expected — T01 is a human gate and everything
-descends from it. **A graph whose contract units are all gated reports zero
-executable work, and this is normal early in a plan's life.** T10 must report it as
-a first-class answer rather than as a failure.
+The two ready nodes are **T00** (the Cargo workspace, lints and CI — mechanical, no
+decision needed) and **T01** (the product contract, human-gated deliberately). They
+have no dependency on each other, so T00 can proceed while T01 is being thought
+about.
+
+**All fifteen decisions are resolved.** Nothing in the graph is blocked on one.
 
 `plan/v0.2.0/` holds the deferred unattended lane (T21, T22) with its
 specifications intact.
 
 ## What to do first
 
-**Answer `D2`** in `plan/v0.1.0/decisions.md` — one plan format or two. It blocks
-most of the graph, and `D5` raised its stakes: the *agent* now writes this format,
-so the schema must be strict enough that a plausible-looking bad plan fails, and its
-error messages are an interface the agent converges against rather than a nicety.
+**T00**, which needs no decision and no permission: the Cargo workspace, the
+`trestle` binary shell, `fmt`/`clippy`/`deny` config, and a CI workflow. Every other
+oracle assumes it exists.
 
-Recommendation stands: one schema with a `shape:` discriminator. Do **not** collapse
-a loop into a chain-shaped graph — that loses the journal.
+**T01** in parallel, interactively — it's gated for a reason. Its threat-model
+channel table is what T16 turns into tests, and it needs four channels the original
+node predated: the MCP server, `trestle init` writing outside `.trestle/`, embedded
+assets, and the absence of update checks.
 
-`D3` (tree-sitter vs LSP) blocks T05 and T15. `D9`–`D12` are scoped to single nodes
-and can wait until those nodes come up.
+Then **the vertical slice**: T05 (survey) → T03 (shape rubric) → **T28**, a human
+gate that runs `trestle survey` and `trestle shape` against five real repositories
+and asks whether the answer is any good. T07 waits on T28, so nothing that *builds
+on* the shape decision starts before a human has confirmed the shape decision is
+worth building on. T02, T04 and T16 don't depend on it and run alongside.
 
-Then execute T01 (product contract + threat model) interactively — it's gated for a
-reason, and its channel table is what T16 turns into tests. It now needs four
-channels the original didn't have: the MCP server, `trestle init` writing outside
-`.trestle/`, embedded assets, and the absence of update checks.
-
-After T01, three tracks open in parallel — T04, T05 and T16.
+That ordering is deliberate: without it, nothing is runnable until T17 — six layers
+deep — and the first feedback on the product's central claim would arrive after
+almost all the cost was spent.
 
 ## Things not to get wrong
 

@@ -50,6 +50,9 @@ Install once:
 brew install trestle
 ```
 
+Or `curl -fsSL <url>/install.sh | sh`, or `cargo install trestle-cli` — one static
+binary, no runtime, nothing to configure.
+
 Set up a repo once:
 
 ```bash
@@ -310,8 +313,10 @@ gated on human decisions. Nothing is built yet.
 
 To work on it, start with [`DEVELOPING.md`](DEVELOPING.md). For the plan itself,
 start at [`plan/v0.1.0/README.md`](plan/v0.1.0/README.md), then
-[`plan/v0.1.0/decisions.md`](plan/v0.1.0/decisions.md) — eight of fourteen decisions
-are resolved, and `D2` (the plan format) blocks most of what remains.
+[`plan/v0.1.0/decisions.md`](plan/v0.1.0/decisions.md) — every decision is resolved
+and the reasoning, including what was rejected and why, is written down to be argued
+with. [`CONTRIBUTING.md`](CONTRIBUTING.md) says which contributions are most wanted;
+the short answer is harness integrations, which are data rather than code.
 
 Written in Rust and shipped as a single static binary, because Trestle plans
 *other people's* repositories and shouldn't make you install a runtime you don't

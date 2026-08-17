@@ -42,8 +42,14 @@ was one line.
 |---|---|
 | Homebrew | `brew install <tap>/trestle` |
 | Shell installer | `curl -fsSL <url>/install.sh \| sh` |
-| Cargo | `cargo install trestle` / `cargo binstall trestle` |
+| Cargo | `cargo install trestle-cli` / `cargo binstall trestle-cli` |
 | Manual | release tarball plus checksum |
+
+**The crate is `trestle-cli`, the binary is `trestle`** (`D15`). `trestle` is taken
+on crates.io by an unrelated project; the binary name, the Homebrew formula and the
+repo are all in different namespaces and stay `trestle`. Every library crate is
+`publish = false`, so only one artifact is ever published and no oracle in
+`graph.yaml` is affected.
 
 The Homebrew formula and the installer script are **generated from one config**
 (`cargo-dist` or equivalent), not hand-maintained. Hand-maintained release
@@ -70,6 +76,9 @@ plumbing drifts and then lies about which version is current.
   target produced an artifact; every artifact has a checksum; the Homebrew formula
   and installer reference the tag actually being released; `trestle --version`
   inside each artifact matches the tag.
+- **Exactly one crate is publishable.** Asserted by walking the workspace and
+  checking every member except `trestle-cli` carries `publish = false` — publishing a
+  library by accident is a name-squat on someone else's behalf and is not undoable.
 - The `musl` artifact runs on a distro image with no toolchain installed, asserted
   in CI — the whole point of static linking, and easy to break silently.
 - **Grep assertion: no HTTP client, no update-check code path, and no telemetry

@@ -2,7 +2,9 @@
 
 The plan for Trestle's first version, planned the way Trestle itself will plan
 things. `graph.yaml` holds the nodes and edges; `nodes/` holds one file per node;
-`decisions.md` holds the questions that block them.
+`decisions.md` holds the fifteen decisions behind them — all resolved, with their
+reasoning and rejected alternatives, so they can be argued with rather than guessed
+at.
 
 ```bash
 make status
@@ -64,13 +66,19 @@ building Trestle:
 | Fast oracle available | yes, but only *after* the schema exists | mixed |
 | Must survive interruption | yes — this is spare-time work across weeks | graph |
 | Completeness matters | yes — the privacy guarantee must be provably total | graph |
-| Requirements settled | **better than before** — 8 of 14 decisions resolved | graph |
-| Task size | ~25 units, multi-week | graph |
+| Requirements settled | **yes** — all 15 decisions resolved | graph |
+| Task size | 27 units, multi-week | graph |
 
-The dissent that made this marginal has largely resolved. `D5` and `D6` — the two
-that would have changed the plan's own shape — are answered, and the remaining open
-questions (`D2`, `D3`, `D9`–`D12`) are scoped to specific nodes rather than
-pervasive. A graph is now the clear reading rather than a five-to-one call.
+The dissent that made this marginal has resolved. Every decision is answered,
+including the two (`D5`, `D6`) that would have changed the plan's own shape. A graph
+is now the clear reading rather than a five-to-one call.
+
+One loop-shaped concession remains, deliberately: **T28 is a checkpoint, not a
+milestone.** T00 → T05 → T03 → T28 is a vertical slice that builds a working
+`trestle survey` + `trestle shape`, then stops and asks a human whether the answer is
+any good. T07 waits on it. That is iteration wearing a graph's clothes, and it is
+there because the shape rubric being wrong would invalidate everything downstream —
+so it should be tested in four nodes rather than twenty-four.
 
 ## Scope of v0.1.0
 
@@ -98,7 +106,10 @@ anything; a plugin marketplace; auth.
 ## The critical path
 
 ```
-T01 → T02 → T03 → T07 → T09 → T10/T11 → T17 → T23/T24/T26 → T18
+T00 ─┬─ T05 ── T03 ── T28 ⛔ ──┐        the slice: prove the shape answer first
+     └─ T01 ── T02 ───────────┴─ T07 ── T09 ─┬─ T10/T11 ── T17 ─┬─ T23
+                                             └─ T25             ├─ T24 ─┬─ T18
+                                                                └─ T26 ─┘
 ```
 
 T02 (the plan format) remains the single highest-leverage node: every other
@@ -106,9 +117,17 @@ component reads or writes it, and `D5` raised its stakes by making the *agent* a
 writer of the format rather than only a reader. Its error messages are now an
 interface, not a nicety.
 
-T05 (repo survey), T16 (egress test) and T04 (integration contract) branch off T01
-early and can proceed in parallel with the format work. T03 depends on T05, because
-the rubric scores signals the survey measures.
+**T00** is the floor: the Cargo workspace, the binary shell, the lints that enforce
+half of `AGENTS.md`, and the CI workflow. `deps: []` and `tier: cheap` — start here.
+
+**T28 is the checkpoint that matters.** By then `trestle survey` and `trestle shape`
+work, which is the product thesis in two commands. A human runs them against five
+real repositories and decides whether the recommendation is worth building on. If it
+isn't, the correct outcome is to fix the rubric — not to proceed and hope the rest of
+the product compensates. Only T07 waits on it; T02, T04 and T16 run throughout.
+
+T03 depends on T05 and **not** on T02 — the rubric's output is its own small struct,
+not a plan — which is what makes the slice reachable without the format.
 
 T27 (external standards) sits on the critical path through T09, and is human-gated:
 a distillation of someone's 300-page policy document governs every unit, so a wrong
@@ -136,14 +155,13 @@ This repo has to hold to them itself.
 
 ## Before any of this
 
-Nothing here is built. The first real step is **answering `D2`** in
-`decisions.md` — it blocks most of the graph, and it now has more to hold: `draft`
-and `verified` states, oracle provenance, and the rule that roles stay out of the
-plan. `D3` blocks T05 and T15; `D9`–`D12` are scoped to single nodes and can be
-answered when those nodes come up.
+Nothing here is built, and **nothing is blocked** — all fifteen decisions are
+resolved, with their reasoning and rejected alternatives written down in
+`decisions.md` to be argued with.
 
-Then execute T01 interactively — it is gated for a reason, and its threat model is
-what T16 turns into tests.
+Start with **T00** (mechanical, no decision needed) and **T01** in parallel. T01 is
+gated for a reason: it decides what the privacy guarantee actually promises, and its
+threat-model channel table is what T16 turns into tests.
 
 See [`../../CONTEXT.md`](../../CONTEXT.md) for a self-contained handoff if you're
 picking this up in a fresh session.

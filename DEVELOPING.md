@@ -25,32 +25,31 @@ Rust (`D6`), stable. `make status` needs `python3`, which macOS and every mainst
 Linux ship — deliberately not Node, since requiring one language's runtime to develop
 a tool that plans repos in any language is the thing `D6` rejected.
 
-The workspace doesn't exist yet. T02 creates the first crate; each node's oracle
-names the crate it owns, and a node creates the crate its oracle names.
+**T00 creates the workspace**, the `trestle` binary shell, the lints that enforce
+half of `AGENTS.md` (`fmt`, `clippy -D warnings`, `cargo deny`) and the CI workflow
+they run in. After that, each node's oracle names the crate it owns, and a node
+creates the crate its oracle names.
 
-The lints that enforce half of `AGENTS.md` — `cargo fmt --check`,
-`cargo clippy -- -D warnings`, `cargo deny` — need a workspace to live in, so
-whichever node creates it owns that config too.
+Library crates are `publish = false` and workspace-local; only the binary is
+published, as `trestle-cli` (`D15` — `trestle` is taken on crates.io by an unrelated
+project). The binary, the Homebrew formula and the repo all stay `trestle`.
 
 ## Start here
 
-### 1. Answer the blocking decision
+### 1. Take T00 — nothing blocks it
 
 ```bash
-$EDITOR plan/v0.1.0/decisions.md
+make status
 ```
 
-Eight of fourteen are resolved. **`D2` — one plan format or two — is the one that
-blocks most of the graph**, and `D5` raised its stakes: under inverted control the
-*agent* writes this format, so the schema must be strict enough that a
-plausible-looking bad plan fails, and its error messages are the interface the agent
-converges against. It also has more to hold now — `draft` and `verified` states,
-oracle provenance, and the rule that roles stay out of the plan (`D14`).
+**All fifteen decisions are resolved**, so nothing in the graph is waiting on a
+judgement call. T00 is `tier: cheap` with `deps: []`: the workspace, the binary
+shell, the lint config, the CI workflow. Every other oracle assumes it exists, and it
+can be done while T01 is still being thought about.
 
-`D3` (how the code graph is extracted) blocks T05 and T15 and is worth answering at
-the same time. `D9`–`D12` are scoped to single nodes and can wait.
-
-Resolve by appending your answer and marking `RESOLVED <date>`.
+The decisions and their reasoning — including what was rejected and why — are in
+`plan/v0.1.0/decisions.md`. Read `D5` (control is inverted) and `D2` (one format,
+`shape:` discriminator) before designing anything.
 
 ### 2. Do T01 with a human in the loop
 
@@ -76,9 +75,15 @@ assets, and the absence of update checks.
 One node per invocation: it picks a ready node, dispatches it to the agent
 matching its tier, runs the oracle itself, commits, and stops.
 
-After T01, three tracks open in parallel — **T04** (integration contract), **T05**
-(repo survey) and **T16** (egress test). T16 is worth taking early: it is cheap,
-and every node after it inherits the protection.
+After T00 and T01, four tracks open in parallel — **T02** (plan format), **T04**
+(integration contract), **T05** (repo survey) and **T16** (egress test).
+
+**Take T05 first, then T03, then stop at T28.** That is the vertical slice, and the
+whole reason the graph is ordered this way: four nodes gets you `trestle survey` and
+`trestle shape` running against real repositories, and T28 is a human gate that asks
+whether the shape answer is any good *before* the other twenty units are built on it.
+T16 is worth slotting in early alongside — it is cheap, and every node after it
+inherits the protection.
 
 ## Order worth following
 
@@ -86,16 +91,27 @@ and every node after it inherits the protection.
 see which tracks are genuinely independent:
 
 ```
-0.  T01                          the gate everything descends from
-1.  T02  T04  T05  T16           four parallel tracks open here
-2.  T03  T06  T08  T12  T19      T03 and T06 need T05 as well as T02
-3.  T07  T13  T20  T27           T07 is a fan-in; T27 is human-gated
-4.  T09  T14  T15                T09 needs T07+T08+T27
-5.  T10  T11  T25                all three need T09+T12
-6.  T17                          fan-in over T05,T08,T09,T10,T11,T20
-7.  T23  T24  T26                all hang off T17 only — parallel
-8.  T18                          human-gated dogfood
+0.  T00  T01                     workspace (cheap, unblocked) + the product gate
+1.  T02  T04  T05  T16           four parallel tracks
+2.  T03                          ── the slice ──  needs T05 only, not T02
+3.  T28                          ⛔ HUMAN GATE — is the shape answer any good?
+    ├─ if no: fix the rubric. Do not proceed.
+    └─ if yes: everything below unlocks
+4.  T06  T08  T12  T19           (these run alongside 2–3; none needs T28)
+5.  T07  T13  T20  T27           T07 waits on T28; T27 is human-gated
+6.  T09  T14  T15                T09 needs T07+T08+T27
+7.  T10  T11  T25                all three need T09+T12
+8.  T17                          fan-in over T05,T08,T09,T10,T11,T20
+9.  T23  T24  T26                all hang off T17 only — parallel
+10. T18                          human-gated dogfood
 ```
+
+**T00 → T05 → T03 → T28 is a vertical slice**, and it is the point of this ordering.
+It gets `trestle survey` and `trestle shape` working against real repositories in
+four nodes, so the product's central claim — *does it say "loop" when it should?* —
+is tested before the other twenty units are built on top of it. Without the gate,
+nothing runs until T17 and the first real feedback arrives after almost all the cost
+is spent.
 
 **T02 is the highest-leverage node in the project.** If one thing gets done
 carefully, make it that one. Its acceptance bar is expressing both fixtures in
@@ -154,9 +170,9 @@ If an ambiguity appears that you can't resolve from the node file, append it to
 
 - Remote is `github.com/IVIR3zaM/Trestle`. While this is solo work, commit to
   `main`; switch to one branch per node once there are contributors.
-- Licensed **Apache-2.0** (`LICENSE`). No `CONTRIBUTING.md` or code of conduct yet —
-  worth having before the first outside PR, since T04 is designed so integrations
-  can be contributed as data and that is the contribution to invite.
-- **The name is unverified.** "Trestle" was checked only against sibling
-  directories on one machine. Check **crates.io**, Homebrew and GitHub before
-  publishing — `D6` changed which registry matters.
+- Licensed **Apache-2.0** (`LICENSE`), with `CONTRIBUTING.md` and
+  `CODE_OF_CONDUCT.md` in place. The contribution to invite is a harness
+  integration, which `D10` made data rather than code.
+- **The name is partly verified.** `trestle` is taken on crates.io (`D15`, routed
+  around); GitHub is ours. Still to check: the Homebrew tap name, and any trademark
+  conflict in developer tools.

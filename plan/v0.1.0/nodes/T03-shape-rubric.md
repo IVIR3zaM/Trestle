@@ -3,7 +3,7 @@ id: T03
 title: Shape-decision rubric (loop vs graph vs both)
 tier: deep
 gate: human
-deps: [T02, T05]
+deps: [T00, T05]
 ---
 
 ## Goal
@@ -35,6 +35,18 @@ So the work splits:
 That is what keeps "the rubric must be willing to say loop" **testable** rather
 than a hope about prompt wording — the assertion lives in this node's test suite,
 where a regression fails CI.
+
+## This node does not depend on the plan format
+
+Deliberately. The rubric's output is `{shape, confidence, reasoning[], signals[]}` —
+a small struct of its own, not a plan. It needs the **survey's signals** (T05) and
+nothing from T02.
+
+Decoupling it is what makes the vertical slice possible: `trestle survey` plus
+`trestle shape` is a working answer to the product's central question, reachable
+without the format, the synthesis prompt, the writer or the executors. **T28 judges
+that answer before the rest of the graph is built on it.** Keep this node free of
+the plan format so that stays true.
 
 ## Signals
 

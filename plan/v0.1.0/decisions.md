@@ -4,9 +4,12 @@ Questions that must not be answered by an unattended agent. Each names the nodes
 it blocks. Resolve by appending the answer and marking `RESOLVED <date>`, then
 unblock the node in `graph.yaml`.
 
-**Eight are resolved** (`D0`, `D1`, `D4`, `D5`, `D6`, `D8`, `D13`, `D14`) and one is
-deferred to v0.2.0 (`D7`). `D2` remains the highest-leverage open question;
-`D9`–`D12` fell out of the architecture change recorded in `D5`.
+**All fourteen are resolved** (`D0`–`D6`, `D8`–`D15`) and one is deferred to v0.2.0
+(`D7`). Nothing blocks the graph.
+
+The two that shaped everything else are `D5` (control is inverted — the agent drives
+Trestle) and `D2` (one plan format with a `shape:` discriminator). Read those first
+if you are picking this up cold.
 
 ---
 
@@ -67,7 +70,8 @@ exactly that, and someone running two harnesses in different roles must get both
 
 ## D2 — One plan format, or one per shape?
 
-**Blocks:** T02, and through it most of the graph
+**Blocks:** T02, and through it most of the graph — **RESOLVED 2026-08-17: (a) one
+schema with a `shape:` discriminator and optional per-shape sections.**
 
 The format has to express three things that look different on the surface:
 
@@ -76,43 +80,64 @@ The format has to express three things that look different on the surface:
   see `fixtures/source/loop-shape/` for a worked example
 - a **hybrid**, which is what most real work turns out to be
 
-Options: **(a)** one schema with a `shape:` discriminator and optional
-per-shape sections. **(b)** two schemas and a converter. **(c)** one schema where
-a loop is simply a graph whose nodes form a chain.
+Rejected: **(b)** two schemas and a converter — doubles the surface every consumer
+must handle, and the converter becomes a second place for the format to be wrong.
+**(c)** one schema where a loop is a graph whose nodes form a chain — elegant and
+wrong. It loses the journal, which is the loop's actual mechanism for carrying
+discovery forward, and it would push users toward graphs by making loops feel
+second-class. A tool whose format makes one of its two answers awkward will stop
+giving that answer.
 
-Recommendation: **(a)**. (c) is elegant and wrong — it loses the journal, which
-is the loop's actual mechanism for carrying discovery forward, and it would push
-users toward graphs by making loops feel second-class. (b) doubles the surface
-that every consumer must handle.
+**The shape of the resolution:**
 
-**This is now the most consequential open decision in the project.** Every other
-component reads or writes this format, and under `D5` the *agent* writes it too,
-which raises the bar on the schema being strict and its error messages being good
-enough to iterate against.
+- A required top-level `shape: graph | loop | hybrid`.
+- **Shared spine, always present**: units with ids, titles, `done_when` contracts,
+  oracles or gates, tiers, and oracle provenance (T02 §8).
+- **`graph` adds** dependency edges. Readiness is computed from them.
+- **`loop` adds** an ordered queue and a journal reference. **The journal is not
+  optional** — a loop plan without one fails validation, because a loop with no
+  journal is just a list someone will lose track of.
+- **`hybrid` is a graph whose units may each carry a queue and journal.** Not a
+  third schema; a graph unit that is itself iterated. This is what most real work
+  turns out to be, so it must not be the case that renders or validates worst.
+- Unknown keys are ignored on read and preserved on round-trip, so v0.2.0 can add
+  fields without invalidating existing plans.
+
+**This remains the most consequential node in the project.** Every other component
+reads or writes this format, and under `D5` the *agent* writes it too — so the
+schema must be strict enough that a plausible-looking bad plan fails, and its error
+messages are an interface the agent converges against, not a nicety.
 
 ---
 
 ## D3 — How is the code graph extracted?
 
-**Blocks:** T05, T15
+**Blocks:** T05, T15 — **RESOLVED 2026-08-17: (a) tree-sitter, with (c) heuristics
+as the fallback for unsupported languages. The bar is *useful*, not *accurate*.**
 
-Options: **(a)** tree-sitter — many languages, one dependency, syntactic only
-(imports yes, call graphs weakly). **(b)** LSP — semantically accurate, but
-requires a running language server per language and is slow and fragile to set
-up. **(c)** heuristic — import-statement regexes per language, plus `git log`
-co-change frequency.
+Rejected: **(b)** LSP — semantically accurate, but needs a running language server
+per language, and is slow and fragile to set up. Buying a semantically perfect call
+graph costs more than the feature is worth in v0.1.0, and it would make the survey's
+reliability depend on the user's toolchain being healthy.
 
-Recommendation: **(a)** with **(c)** as a fallback for unsupported languages.
-Trestle needs "which modules depend on which" for the code view and blast-radius
-overlay. It does not need a semantically perfect call graph, and buying one with
-(b) would cost more than the feature is worth in v0.1.0.
+`D6` landing on Rust strengthens (a): tree-sitter's Rust bindings are first-class
+and link the C library without the static-linking friction cgo would have
+introduced.
 
-`D6` landing on Rust strengthens this: tree-sitter's Rust bindings are
-first-class and link the C library without the static-linking friction cgo would
-have introduced.
+**The sub-question, answered: useful, not accurate.** Trestle needs *"which modules
+depend on which"* for the code view's blast radius and for the parallelism signal
+T03 scores. It does not need a sound call graph, and pretending otherwise would set
+a bar (a) cannot clear.
 
-Open sub-question: does the code view need to be *accurate*, or *useful*? They
-are different bars and (a) only clears the second.
+Two consequences that are requirements on T05, not caveats:
+
+- **Every partial result is labelled partial**, and the code view says so on the
+  view itself (T15). An authoritative-looking incomplete graph is worse than an
+  obviously incomplete one, because only the second gets double-checked.
+- **The heuristic fallback is import-regex per language plus `git log` co-change
+  frequency**, and it is marked as heuristic in the output. Co-change is genuinely
+  informative about coupling and genuinely not a dependency edge; conflating the two
+  would make the blast radius quietly wrong.
 
 ---
 
@@ -281,7 +306,9 @@ and it is loopback-bound (T13).
 
 ## D9 — How is progress made unforgeable?
 
-**Blocks:** T11, T12
+**Blocks:** T11, T12 — **RESOLVED 2026-08-17: (b) `trestle verify --override
+--reason <text>` recording a distinct `done(overridden)` state, with the limit of
+that claim stated in the docs.**
 
 Under `D5` the agent could simply claim a unit passed. The design answer is that
 **`trestle verify` runs the oracle command itself and is the only writer of
@@ -300,17 +327,24 @@ which is itself a recorded diff. **(b)** `trestle verify --override --reason
 shows differently and `trestle status` counts separately. **(c)** override
 allowed only when the process is attached to a TTY.
 
-Recommendation: **(b)** plus the honest caveat. (c) looks like a control and is
-not one — the agent runs commands in the user's own shell, so any TTY check is
-advisory at best. What actually protects the user is that an override is
-*loud and permanent* in the status file, not that it is hard to perform. Say that
-in the docs rather than implying an enforcement Trestle cannot deliver.
+Rejected: **(a)** no override at all — a tool with no escape hatch gets worked
+around in ways that leave no trace, which is strictly worse than a recorded one.
+**(c)** TTY-gated — looks like a control and is not one, since the agent runs
+commands in the user's own shell.
+
+What actually protects the user is that an override is **loud and permanent** in a
+file that is in git, not that it is hard to perform. The docs must say exactly that
+rather than implying an enforcement Trestle cannot deliver. T11 carries the
+mechanism; T12 counts overridden units separately and always shows the count, even
+when it is zero, so the *absence* of overrides is visible too.
 
 ---
 
 ## D10 — Are integrations data or code?
 
-**Blocks:** T04, T23
+**Blocks:** T04, T23 — **RESOLVED 2026-08-17: (a) a declarative TOML manifest plus
+template files, embedded in the binary and overridable from
+`~/.config/trestle/integrations/`.**
 
 An integration now consists of: a detection rule, a set of files to write with
 their target paths, that harness's convention-file locations, and a capability
@@ -321,11 +355,17 @@ embedded directory and overridable from `~/.config/trestle/integrations/`.
 **(b)** a Rust trait with one implementation per harness. **(c)** manifest for the
 common case, trait for anything that needs logic.
 
-Recommendation: **(a)**. Nothing an integration currently needs to do is
-computation — it is file placement and a capability table. Making it data means a
-contributor adding support for a new editor writes TOML and Markdown, not Rust,
-which matters a great deal for a tool whose value grows with harness coverage. It
-also makes the integration set testable by fixture rather than by mock.
+Nothing an integration currently needs to do is computation — it is file placement
+and a capability table. Making it data means a contributor adding support for a new
+editor writes TOML and Markdown, not Rust, which matters a great deal for a tool
+whose value grows with harness coverage. It also makes the integration set testable
+by fixture rather than by mock, and it is the contribution `CONTRIBUTING.md` should
+be inviting.
+
+Rejected: **(b)** a Rust trait per harness — imposes the project's language on
+everyone who wants their editor supported. **(c)** manifest-plus-trait — carries
+both mechanisms from day one to serve a case that has not appeared yet, which
+`AGENTS.md` §2 rules out directly.
 
 Risk to watch: the first integration that genuinely needs logic will tempt a
 templating language into the manifest. Prefer adding a narrow capability flag to
@@ -335,7 +375,8 @@ inventing a DSL.
 
 ## D11 — What happens to token accounting?
 
-**Blocks:** T20
+**Blocks:** T20 — **RESOLVED 2026-08-17: (a) pre-run estimates only; actual usage
+records `unknown`, permanently, in v0.1.0.**
 
 `D5` removed Trestle's ability to observe usage. It never sees a request, a
 response, or a bill.
@@ -345,12 +386,12 @@ permanently. **(b)** ask the agent to self-report usage into the status file via
 `trestle record-usage`. **(c)** parse harness-local session logs where they exist
 on disk (Claude Code writes them, for instance).
 
-Recommendation: **(a)** for v0.1.0. (b) is unverified data wearing the costume of
-a measurement, which is exactly what T20 already forbids — *"never a silent
-estimate"* cuts both ways. (c) is plausible and privacy-safe (the files are
-already local), but it is per-harness reverse engineering of formats with no
-stability contract, and it belongs in v0.2.0 behind a clearly-labelled
-`best-effort` flag if anyone wants it.
+Rejected: **(b)** agent self-reporting — unverified data wearing the costume of a
+measurement, which is exactly what T20 already forbids; *"never a silent estimate"*
+cuts both ways. **(c)** parsing harness-local session logs — plausible and
+privacy-safe, since the files are already on disk, but it is per-harness reverse
+engineering of formats with no stability contract. It belongs in v0.2.0 behind a
+clearly-labelled `best-effort` flag if anyone wants it.
 
 So the honest v0.1.0 story: a **range with its assumptions stated** before you
 run, and `unknown` afterwards. That is less than was planned, and it is what
@@ -360,7 +401,7 @@ inverting control actually costs.
 
 ## D12 — What happens when the plan turns out to be wrong?
 
-**Blocks:** T25
+**Blocks:** T25 — **RESOLVED 2026-08-17: (a) `trestle plan amend`, additive only.**
 
 T09 correctly refuses to overwrite a plan that has progress recorded against it.
 That leaves no answer for the common case: **the plan is wrong at unit 7.** A
@@ -373,11 +414,15 @@ normal reviewable diff. **(b)** version the plan: freeze `v1`, generate `v2`,
 carry status forward for unchanged units. **(c)** nothing in v0.1.0 — tell users
 to hand-edit and re-validate.
 
-Recommendation: **(a)**. It matches how the loop fixture handles superseded rules
-— *marked in place rather than deleted* — and it keeps the plan a single document
-the team can argue with rather than a series of snapshots. (b) is more correct and
-much heavier; the moment two versions exist, every consumer needs to know which
-one it is reading.
+It matches how the loop fixture handles superseded rules — *marked in place rather
+than deleted* — and it keeps the plan a single document the team can argue with
+rather than a series of snapshots.
+
+Rejected: **(b)** versioned plans — more correct and much heavier; the moment two
+versions exist, every consumer needs to know which one it is reading, and the
+dashboard, the status store and `trestle next` all grow a question they don't
+currently have. **(c)** nothing — leaves users hand-editing a plan the validator may
+then reject, which in practice means abandoning the plan.
 
 Constraint either way: **an amend must never be able to un-`done` a unit that
 passed its oracle**, and it must never silently change a unit that is currently
@@ -466,14 +511,56 @@ name into a tier (T19).
 
 ---
 
+## D15 — `trestle` is taken on crates.io. Now what?
+
+**Blocks:** T26 — **RESOLVED 2026-08-17: keep the product name; publish the binary
+crate as `trestle-cli`; every library crate is `publish = false`.**
+
+Checked 2026-08-17: `crates.io/crates/trestle` is a real crate — a Rust web-app
+scaffolding CLI, v0.1.0, published October 2025, ~195 downloads, with a live repo.
+Small and quiet, but published and not abandoned. crates.io does not reassign names
+in that situation and asking would be a bad look, so this is a naming problem to
+route around rather than contest.
+
+**The blast radius is one name, not twenty-five.** Every oracle in `graph.yaml`
+names a crate (`cargo test -p trestle-plan`), and those are *workspace-local*
+package names. A crate with `publish = false` never touches the registry, so the
+whole internal `trestle-*` namespace is unaffected and **no oracle changes**. Only
+the one published artifact needs a globally unique name.
+
+So:
+
+| Thing | Name | Namespace |
+|---|---|---|
+| Product, repo, docs | **Trestle** | ours |
+| Installed binary | **`trestle`** | the user's `$PATH` — crates.io doesn't own binary names |
+| Homebrew formula | **`trestle`** | our tap |
+| Published crate | **`trestle-cli`** | crates.io — verified free 2026-08-17 |
+| Library crates | `trestle-plan`, `trestle-survey`, … | `publish = false`, never published |
+
+The only visible cost is `cargo install trestle-cli` instead of `cargo install
+trestle`, and per `D6`/T26 that was never the primary channel — `brew` and the
+shell installer are.
+
+**The one thing worth a second's thought before this hardens:** the existing crate
+is *also* a Rust CLI, so the two will share search results. That is a mild,
+permanent annoyance rather than a blocker. If it is unacceptable, renaming the
+product is cheap now and expensive after a launch — but the recommendation is to
+keep it. "Trestle" was chosen for a reason that still holds, and 195 downloads of an
+unrelated scaffolder is not a real collision.
+
+Still to check before publishing: the Homebrew tap name, and that no trademark
+conflict exists in the developer-tools space.
+
+---
+
 ## Open
 
-Open: **D2, D3, D9, D10, D11, D12.**
-Resolved: D0, D1, D4, D5, D6, D8, D13, D14. Deferred: D7.
+**Open: none.** D0–D6 and D8–D15 are resolved; D7 is deferred to v0.2.0.
 
-`D2` is the one to think about first — it blocks most of the graph, and `D5`
-raised its stakes by making the agent a writer of the format rather than only a
-reader.
+That is not an invitation to stop thinking. `D3`'s "useful, not accurate" bar and
+`D9`'s "loud, not prevented" limit are the two most likely to be quietly violated
+by an implementation that means well.
 
 Add new decisions here as they surface. Any agent that hits an ambiguity it
 cannot resolve from a node file must append it, mark the affected node `blocked`

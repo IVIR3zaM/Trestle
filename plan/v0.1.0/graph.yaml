@@ -19,11 +19,26 @@ version: "0.1.0"
 #
 # LANGUAGE (D6, resolved): Rust, single static binary. Oracles are cargo
 # commands; a crate named in an oracle is created by the node that owns it.
+# Library crates are `publish = false` and workspace-local; only the binary is
+# published, as `trestle-cli` (D15). T00 creates the workspace they live in.
 #
-# NOTE: D2 (plan format) is still open and blocks most of the graph.
-# Resolve it before starting T02.
+# THE SLICE: T00 → T05 → T03 → T28 is a vertical slice — survey a repo, score
+# its shape, then STOP and judge whether the answer is any good. T28 is a human
+# gate and T07 waits on it, so nothing that builds on the shape decision starts
+# before a human has confirmed the shape decision is worth building on.
+# T02, T04 and T16 do not depend on it and run in parallel throughout.
+#
+# All decisions are resolved. See decisions.md.
 
 nodes:
+  # ---- floor -------------------------------------------------------------
+  - id: T00
+    title: Cargo workspace, binary shell, lints and CI
+    deps: []
+    tier: cheap
+    oracle: "bash scripts/check-workspace.sh"
+    status: todo
+
   # ---- contracts ---------------------------------------------------------
   - id: T01
     title: Product contract + privacy threat model
@@ -35,7 +50,7 @@ nodes:
 
   - id: T02
     title: Plan format spec (graph, loop, hybrid in one schema)
-    deps: [T01]
+    deps: [T00, T01]
     tier: deep
     gate: human
     oracle: "cargo test -p trestle-plan"
@@ -43,7 +58,7 @@ nodes:
 
   - id: T03
     title: Shape-decision rubric (loop vs graph vs both)
-    deps: [T02, T05]
+    deps: [T00, T05]
     tier: deep
     gate: human
     oracle: "cargo test -p trestle-shape"
@@ -51,16 +66,25 @@ nodes:
 
   - id: T04
     title: Harness integration contract
-    deps: [T01]
+    deps: [T00, T01]
     tier: deep
     gate: human
     oracle: "cargo test -p trestle-integration"
     status: todo
 
+  # ---- the vertical slice: survey + shape, then judge it ------------------
+  - id: T28
+    title: POC gate — is the shape recommendation any good?
+    deps: [T03, T05]
+    tier: deep
+    gate: human
+    oracle: "cargo test --workspace"
+    status: todo
+
   # ---- analysis ----------------------------------------------------------
   - id: T05
     title: Repo survey + code-graph extraction
-    deps: [T01]
+    deps: [T00, T01]
     tier: standard
     oracle: "cargo test -p trestle-survey"
     status: todo
@@ -74,7 +98,7 @@ nodes:
 
   - id: T07
     title: Synthesis prompt + plan validation gauntlet
-    deps: [T02, T03, T06, T19]
+    deps: [T02, T03, T06, T19, T28]
     tier: deep
     oracle: "cargo test -p trestle-plan --test gauntlet"
     status: todo
@@ -192,7 +216,7 @@ nodes:
   # ---- guarantees + release ---------------------------------------------
   - id: T16
     title: Egress test — prove no outbound connections
-    deps: [T01]
+    deps: [T00, T01]
     tier: standard
     oracle: "cargo test -p trestle-egress -- --include-ignored"
     status: todo
