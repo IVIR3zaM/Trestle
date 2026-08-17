@@ -74,11 +74,16 @@ than failing at the first unrecognised key.
 | `queue` | hybrid | A nested list of units — a graph unit that is itself iterated. |
 | `journal` | hybrid | The journal for that unit's own iteration. |
 
-**Every unit must have an `oracle`, a `gate`, or an `order`.** The first two are the
-old rule — *no oracle, no node* — and the third is how a loop satisfies it: a loop's
-queue items are verified per iteration against the plan-level `oracle`, not
-individually. A unit with none of the three is unverifiable work with no human
-holding it, which is the one thing the format refuses to express.
+**Every unit must have an `oracle`, a `gate`, an `order`, or a non-empty `queue`.**
+The first two are the old rule — *no oracle, no node*. The third is how a loop
+satisfies it: a loop's queue items are verified per iteration against the plan-level
+`oracle`, not individually. The fourth is the hybrid case: a unit whose own work *is*
+the queue beneath it delegates verification to that queue, exactly as a loop item
+delegates to the plan-level oracle. `H02` in the worked hybrid example below is such
+a unit — it carries `deps`, `journal` and `queue`, and nothing of its own to run.
+
+A unit with none of the four is unverifiable work with no human holding it, which is
+the one thing the format refuses to express.
 
 ### Oracles
 

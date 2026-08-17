@@ -190,10 +190,12 @@
         },
         "journal": { "type": "string" }
       },
+      "comment-on-anyOf": "A unit must be verifiable or held by a human: its own oracle, a human gate, a queue position (a loop item, verified per iteration against the plan-level oracle), or a non-empty queue of its own (a hybrid unit whose work IS that queue, delegating verification to it). The fourth alternative was missing until T02b implemented the rule literally and found it rejected this schema's own hybrid fixture.",
       "anyOf": [
         { "required": ["oracle"] },
         { "required": ["gate"] },
-        { "required": ["order"] }
+        { "required": ["order"] },
+        { "required": ["queue"] }
       ],
       "additionalProperties": true
     },
