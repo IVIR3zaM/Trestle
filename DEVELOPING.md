@@ -143,9 +143,11 @@ If an ambiguity appears that you can't resolve from the node file, append it to
 
 ## Not yet set up
 
-- No remote. Add one when you're ready to publish; the executor's commit policy
-  changes to one branch per node at that point.
-- No licence, `CONTRIBUTING.md`, or code of conduct.
+- Remote is `github.com/IVIR3zaM/Trestle`. While this is solo work, commit to
+  `main`; switch to one branch per node once there are contributors.
+- Licensed **Apache-2.0** (`LICENSE`). No `CONTRIBUTING.md` or code of conduct yet —
+  worth having before the first outside PR, since T04 is designed so integrations
+  can be contributed as data and that is the contribution to invite.
 - **The name is unverified.** "Trestle" was checked only against sibling
   directories on one machine. Check **crates.io**, Homebrew and GitHub before
   publishing — `D6` changed which registry matters.

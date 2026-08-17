@@ -221,9 +221,10 @@ After T01, three tracks open in parallel — T04, T05 and T16.
 
 ## Not yet done
 
-- Licence, `CONTRIBUTING.md`, code of conduct.
-- No git remote. The executor's commit policy changes to one branch per node once
-  there is one.
+- `CONTRIBUTING.md` and a code of conduct. **Licensed Apache-2.0** — see `LICENSE`.
+- The remote is `github.com/IVIR3zaM/Trestle`. Per `DEVELOPING.md` the executor's
+  commit policy moves to one branch per node once there are contributors; while it
+  is solo, `main` is fine.
 - **Verify the name is free** on crates.io, Homebrew and GitHub. "Trestle" was
   chosen for meaning (the frame you build first so the real thing has something to
   rest on) and checked only against sibling folders on this machine. Note the

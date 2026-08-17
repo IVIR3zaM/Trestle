@@ -306,6 +306,12 @@ Written in Rust and shipped as a single static binary, because Trestle plans
 *other people's* repositories and shouldn't make you install a runtime you don't
 otherwise want.
 
+## Licence
+
+[Apache License 2.0](LICENSE). Permissive, with an explicit patent grant — the
+usual choice for a tool people are expected to run inside their own commercial
+codebases, which is exactly what this is.
+
 ## Prior art this is built on
 
 Trestle is an assembly of established ideas, not a new invention:
