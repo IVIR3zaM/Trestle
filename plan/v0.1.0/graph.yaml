@@ -71,7 +71,7 @@ nodes:
     tier: deep
     gate: human
     oracle: "bash scripts/check-plan-format.sh"
-    status: todo
+    status: done
 
   - id: T02b
     title: Plan format — parser, round-trip fidelity, error-message quality
