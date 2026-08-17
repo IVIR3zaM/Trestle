@@ -62,13 +62,24 @@ Copilot, an `AGENTS.md` block for Codex — plus `.trestle/` for the plans. It s
 you every path it will touch before it touches anything, and `trestle uninstall`
 reverses it exactly.
 
-If you run more than one assistant, this is also where you say **who does what**:
+**One assistant is the default**, and there is nothing to configure: it plans, it
+implements, it verifies, and you never see the word "role".
+
+If you run several, `init` is where you say who does what. There's no prescribed
+split — this is just one that people use, with a second assistant reviewing the
+first one's work:
 
 ```text
-  planner      survey, questions, shape, synthesis   [Claude Code]
-  implementer  writes the code, runs verify          [Claude Code]
-  verifier     independent review of finished work   [Codex]
+  planner      survey, questions, shape, synthesis   › your choice
+  implementer  writes the code, runs verify          › your choice
+  verifier     independent review of finished work   › your choice, or none
+
+  e.g.  planner + implementer → Claude Code,  verifier → Codex
 ```
+
+Adding a verifier makes the pipeline **stricter**: a unit whose oracle passes lands
+in `verified` rather than `done` until the reviewer clears it. Skipping it is a
+first-class choice, not a downgrade.
 
 Then **stay in your editor.** In Copilot Chat, or Claude Code, or Codex:
 
