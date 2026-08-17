@@ -78,7 +78,7 @@ nodes:
     deps: [T02a]
     tier: standard
     oracle: "cargo test -p trestle-plan"
-    status: todo
+    status: done
 
   - id: T03
     title: Shape-decision rubric (loop vs graph vs both)
