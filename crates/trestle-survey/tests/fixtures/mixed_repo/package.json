@@ -1,0 +1,7 @@
+{
+  "name": "mixed-repo-fixture",
+  "scripts": {
+    "test": "node js_consumer.js",
+    "build": "echo build"
+  }
+}

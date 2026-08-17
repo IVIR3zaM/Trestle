@@ -1,0 +1,226 @@
+{
+  "build_commands": [
+    {
+      "command": "npm run build",
+      "kind": "npm-script",
+      "source": "package.json"
+    },
+    {
+      "command": "make build",
+      "kind": "make-target",
+      "source": "Makefile"
+    }
+  ],
+  "ci_configs": [
+    ".github/workflows/ci.yml"
+  ],
+  "conventions": [
+    "AGENTS.md"
+  ],
+  "edges": [
+    {
+      "from": "js_consumer",
+      "heuristic": true,
+      "kind": "import",
+      "to": "js_shared",
+      "weight": 1
+    },
+    {
+      "from": "python_app_a",
+      "heuristic": false,
+      "kind": "import",
+      "to": "python_shared",
+      "weight": 1
+    },
+    {
+      "from": "python_app_b",
+      "heuristic": false,
+      "kind": "import",
+      "to": "python_shared",
+      "weight": 1
+    },
+    {
+      "from": "rust_consumer_a",
+      "heuristic": false,
+      "kind": "import",
+      "to": "rust_shared",
+      "weight": 1
+    },
+    {
+      "from": "rust_consumer_b",
+      "heuristic": false,
+      "kind": "import",
+      "to": "rust_shared",
+      "weight": 1
+    }
+  ],
+  "languages": [
+    {
+      "file_count": 2,
+      "name": "javascript",
+      "support": "regex-fallback"
+    },
+    {
+      "file_count": 4,
+      "name": "python",
+      "support": "tree-sitter"
+    },
+    {
+      "file_count": 2,
+      "name": "ruby",
+      "support": "unsupported"
+    },
+    {
+      "file_count": 3,
+      "name": "rust",
+      "support": "tree-sitter"
+    }
+  ],
+  "modules": [
+    {
+      "file_count": 1,
+      "language": "javascript",
+      "name": "js_consumer"
+    },
+    {
+      "file_count": 1,
+      "language": "javascript",
+      "name": "js_shared"
+    },
+    {
+      "file_count": 1,
+      "language": "python",
+      "name": "python_app_a"
+    },
+    {
+      "file_count": 1,
+      "language": "python",
+      "name": "python_app_b"
+    },
+    {
+      "file_count": 2,
+      "language": "python",
+      "name": "python_shared"
+    },
+    {
+      "file_count": 1,
+      "language": "ruby",
+      "name": "ruby_app"
+    },
+    {
+      "file_count": 1,
+      "language": "ruby",
+      "name": "ruby_shared"
+    },
+    {
+      "file_count": 1,
+      "language": "rust",
+      "name": "rust_consumer_a"
+    },
+    {
+      "file_count": 1,
+      "language": "rust",
+      "name": "rust_consumer_b"
+    },
+    {
+      "file_count": 1,
+      "language": "rust",
+      "name": "rust_shared"
+    }
+  ],
+  "partial": true,
+  "partial_reasons": [
+    "javascript: import edges are a heuristic fallback or unavailable (D3)",
+    "ruby: import edges are a heuristic fallback or unavailable (D3)"
+  ],
+  "schema_version": "1",
+  "shape_signals": {
+    "module_fan_out": {
+      "max": 1,
+      "mean": 0.5,
+      "per_module": [
+        {
+          "fan_out": 1,
+          "module": "js_consumer"
+        },
+        {
+          "fan_out": 0,
+          "module": "js_shared"
+        },
+        {
+          "fan_out": 1,
+          "module": "python_app_a"
+        },
+        {
+          "fan_out": 1,
+          "module": "python_app_b"
+        },
+        {
+          "fan_out": 0,
+          "module": "python_shared"
+        },
+        {
+          "fan_out": 0,
+          "module": "ruby_app"
+        },
+        {
+          "fan_out": 0,
+          "module": "ruby_shared"
+        },
+        {
+          "fan_out": 1,
+          "module": "rust_consumer_a"
+        },
+        {
+          "fan_out": 1,
+          "module": "rust_consumer_b"
+        },
+        {
+          "fan_out": 0,
+          "module": "rust_shared"
+        }
+      ]
+    },
+    "oracle": {
+      "commands_found": 5,
+      "measured_runtime_seconds": null,
+      "present": true
+    },
+    "parallelism": {
+      "cluster_sizes": [
+        1,
+        1,
+        2,
+        3,
+        3
+      ],
+      "independent_clusters": 5
+    },
+    "repo_size": {
+      "file_count": 11,
+      "total_lines": 31
+    },
+    "test_to_source_ratio": {
+      "ratio": 0.1,
+      "source_files": 10,
+      "test_files": 1
+    }
+  },
+  "test_commands": [
+    {
+      "command": "npm run test",
+      "kind": "npm-script",
+      "source": "package.json"
+    },
+    {
+      "command": "make test",
+      "kind": "make-target",
+      "source": "Makefile"
+    },
+    {
+      "command": "pytest",
+      "kind": "pytest",
+      "source": "pyproject.toml"
+    }
+  ]
+}
