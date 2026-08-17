@@ -31,5 +31,8 @@ jobs:
       - name: cargo test --workspace
         run: cargo test --workspace
 
+      - name: cargo test -p trestle-egress -- --include-ignored
+        run: cargo test -p trestle-egress -- --include-ignored
+
       - name: cargo deny check
         run: cargo install cargo-deny && cargo deny check

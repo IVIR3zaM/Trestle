@@ -5,3 +5,7 @@ version = 4
 [[package]]
 name = "trestle-cli"
 version = "0.0.1"
+
+[[package]]
+name = "trestle-egress"
+version = "0.0.1"

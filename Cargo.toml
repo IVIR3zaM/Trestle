@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/trestle-cli"]
+members = ["crates/trestle-cli", "crates/trestle-egress"]
 resolver = "2"
 
 [workspace.package]
