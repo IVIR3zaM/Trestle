@@ -1,0 +1,14 @@
+[workspace]
+members = ["crates/trestle-cli"]
+resolver = "2"
+
+[workspace.package]
+version = "0.0.1"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/IVIR3zaM/Trestle"
+authors = ["Reza Maghoul <m.reza.maghool@gmail.com>"]
+
+[workspace.lints.clippy]
+too-many-lines = "warn"
+cognitive-complexity = "warn"

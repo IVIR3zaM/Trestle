@@ -1,0 +1,15 @@
+[package]
+name = "trestle-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = true
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "trestle"
+path = "src/main.rs"

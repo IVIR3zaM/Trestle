@@ -1,0 +1,38 @@
+# Cargo-deny configuration for trestle.
+# Starts strict: loosening policies is a deliberate decision, while tightening later means
+# auditing everything already in. This ensures we catch problems early as dependencies grow.
+
+[advisories]
+
+[licenses]
+allow = ["MIT", "Apache-2.0"]
+
+[bans]
+multiple-versions = "deny"
+wildcards = "deny"
+# Deny all HTTP clients, telemetry crates, and build scripts with network access.
+# This ensures the CLI remains lightweight and predictable without unexpected network calls.
+deny = [
+    # HTTP clients
+    { name = "reqwest" },
+    { name = "curl" },
+    { name = "hyper" },
+    { name = "ureq" },
+    { name = "isahc" },
+    { name = "surf" },
+    { name = "attohttpc" },
+    { name = "hyper-util" },
+    # TLS/crypto transports that bring network deps
+    { name = "native-tls" },
+    { name = "openssl" },
+    # Telemetry and analytics
+    { name = "sentry" },
+    { name = "opentelemetry" },
+    { name = "tracing-opentelemetry" },
+    { name = "posthog" },
+    { name = "analytics" },
+]
+
+[sources]
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

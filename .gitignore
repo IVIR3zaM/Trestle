@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .DS_Store
+target/
 
 # Claude Code: local settings stay local, but skills and agent definitions are
 # part of the repo — a fresh clone must have them.
