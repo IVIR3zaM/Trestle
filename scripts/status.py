@@ -72,7 +72,7 @@ def is_ready(node):
     return node["status"] == "todo" and all(is_done(by_id[d]) for d in node["deps"])
 
 
-MARK = {"done": "✓", "in_progress": "·", "blocked": "✗", "todo": " "}
+MARK = {"done": "✓", "in_progress": "·", "blocked": "✗", "todo": " ", "split": "⊘"}
 width = max(len(n["title"]) for n in nodes)
 
 print("\nTrestle v0.1.0 — build graph\n")
@@ -90,10 +90,15 @@ for n in nodes:
 
 ready = [n for n in nodes if is_ready(n)]
 auto = [n for n in ready if n.get("gate") != "human"]
-done = sum(1 for n in nodes if is_done(n))
+
+# A `split` node is a container, not work — its sub-nodes carry the load and it can
+# never be `done`. Counting it in the denominator would make a fully-built graph
+# read as permanently incomplete.
+countable = [n for n in nodes if n["status"] != "split"]
+done = sum(1 for n in countable if is_done(n))
 
 print(
-    f"\n  {done}/{len(nodes)} done · {len(ready)} ready "
+    f"\n  {done}/{len(countable)} done · {len(ready)} ready "
     f"({len(auto)} unattended, {len(ready) - len(auto)} gated)"
 )
 blocked = [n["id"] for n in nodes if n["status"] == "blocked"]

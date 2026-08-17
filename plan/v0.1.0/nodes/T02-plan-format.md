@@ -4,7 +4,21 @@ title: Plan format spec (graph, loop, hybrid in one schema)
 tier: deep
 gate: human
 deps: [T01]
+status: split
 ---
+
+> **This node was split and is not executable.** Spec-and-fixtures is a design
+> decision a human settles; the parser is implementation against a settled spec, and
+> ~25 files in one pass on the project's highest-leverage node was the scope risk.
+>
+> - **[`T02a`](T02a-plan-format-spec.md)** — normative spec, JSON schema, expressed
+>   fixtures. Proves the format can *express* both source fixtures without loss.
+> - **[`T02b`](T02b-plan-parser.md)** — `crates/trestle-plan`, round-trip fidelity,
+>   error-message quality. Proves it can be *implemented* without loss.
+>
+> Both sub-node files are self-contained; this file is kept as the record of what was
+> split and why. Every node that depended on T02 now depends on `T02b`, which
+> subsumes `T02a`.
 
 ## Goal
 

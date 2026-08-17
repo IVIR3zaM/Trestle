@@ -26,7 +26,7 @@ version: "0.1.0"
 # its shape, then STOP and judge whether the answer is any good. T28 is a human
 # gate and T07 waits on it, so nothing that builds on the shape decision starts
 # before a human has confirmed the shape decision is worth building on.
-# T02, T04 and T16 do not depend on it and run in parallel throughout.
+# T02a, T02b, T04 and T16 do not depend on it and run in parallel throughout.
 #
 # All decisions are resolved. See decisions.md.
 
@@ -48,11 +48,35 @@ nodes:
     oracle: "bash scripts/check-product-doc.sh"
     status: done
 
+  # T02 was split: spec + schema + expressed fixtures is a design decision a human
+  # settles, and the parser is implementation against a settled spec. ~25 files in
+  # one pass on the project's highest-leverage node was the scope risk. The seam is
+  # what each half proves: T02a proves the format can EXPRESS both source fixtures
+  # (you find loss by trying to write them), T02b proves it can be IMPLEMENTED
+  # losslessly. If T02b finds loss, that amends T02a rather than hiding inside one
+  # oversized node. Every node that depended on T02 now depends on T02b, which
+  # subsumes T02a — pointing them at the spec alone would let work start against a
+  # format with no parser.
   - id: T02
     title: Plan format spec (graph, loop, hybrid in one schema)
     deps: [T00, T01]
     tier: deep
     gate: human
+    oracle: "cargo test -p trestle-plan"
+    status: split
+
+  - id: T02a
+    title: Plan format — normative spec, JSON schema, expressed fixtures
+    deps: [T00, T01]
+    tier: deep
+    gate: human
+    oracle: "bash scripts/check-plan-format.sh"
+    status: todo
+
+  - id: T02b
+    title: Plan format — parser, round-trip fidelity, error-message quality
+    deps: [T02a]
+    tier: standard
     oracle: "cargo test -p trestle-plan"
     status: todo
 
@@ -91,21 +115,21 @@ nodes:
 
   - id: T06
     title: Decision store + question schema + interrogation prompt
-    deps: [T02, T05]
+    deps: [T02b, T05]
     tier: deep
     oracle: "cargo test -p trestle-decisions"
     status: todo
 
   - id: T07
     title: Synthesis prompt + plan validation gauntlet
-    deps: [T02, T03, T06, T19, T28]
+    deps: [T02b, T03, T06, T19, T28]
     tier: deep
     oracle: "cargo test -p trestle-plan --test gauntlet"
     status: todo
 
   - id: T08
     title: In-repo convention discovery + classification
-    deps: [T02, T05]
+    deps: [T02b, T05]
     tier: standard
     oracle: "cargo test -p trestle-conventions"
     status: todo
@@ -128,7 +152,7 @@ nodes:
 
   - id: T12
     title: Status + journal store
-    deps: [T02]
+    deps: [T02b]
     tier: standard
     oracle: "cargo test -p trestle-status"
     status: todo
@@ -186,7 +210,7 @@ nodes:
 
   - id: T20
     title: Budget estimation (pre-run, estimate-only)
-    deps: [T02, T19]
+    deps: [T02b, T19]
     tier: standard
     oracle: "cargo test -p trestle-budget"
     status: todo
