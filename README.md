@@ -53,6 +53,10 @@ brew install trestle
 Or `curl -fsSL <url>/install.sh | sh`, or `cargo install trestle-cli` — one static
 binary, no runtime, nothing to configure.
 
+<sup>The crates.io package is `trestle-cli` because `trestle` is taken there by an
+unrelated project. **The command is `trestle` however you install it** — that suffix
+appears once, at install time, and never again.</sup>
+
 Set up a repo once:
 
 ```bash

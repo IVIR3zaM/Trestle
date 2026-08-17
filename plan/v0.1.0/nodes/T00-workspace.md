@@ -27,7 +27,13 @@ progress.
 **Crate naming, per `D15`.** Library crates are `trestle-plan`, `trestle-survey`,
 `trestle-exec` and so on, all with **`publish = false`** — those names are
 workspace-local and never reach crates.io. Only the binary crate is published, as
-**`trestle-cli`**, producing a binary named `trestle`.
+**`trestle-cli`**.
+
+**The binary it produces must be named `trestle`**, via an explicit `[[bin]] name =
+"trestle"` in that crate's `Cargo.toml`. Cargo would otherwise name the executable
+after the package and ship a `trestle-cli` command, which would leak a crates.io
+namespace collision into every command a user ever types. Assert the binary's name,
+not just that it builds.
 
 **The lints that enforce half of `AGENTS.md`.**
 
