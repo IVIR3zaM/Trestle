@@ -63,15 +63,33 @@ if ! echo "$version_output" | grep -qE "[0-9a-f]{7,}"; then
     fail "trestle --version does not include git SHA: got '$version_output'"
 fi
 
-# T00 creates no library crates — the nodes that own them do, so a crate here
-# with no code in it would be a lie about progress. Asked of cargo rather than
-# grepped out of the manifest, so a member added by any means is caught.
-echo "Checking workspace membership..."
+# Every crate in the workspace must be one that some node owns. The graph names the
+# crate each node owns in that node's oracle (`cargo test -p trestle-plan`), so the
+# legitimate set is derived rather than hand-maintained, and a member nobody declared
+# is a crate no node owns — the lie about progress this check exists to catch.
+#
+# This assertion began as "exactly trestle-cli and nothing else", which was true at
+# the moment T00 ran and false from the moment T16 added trestle-egress. The derived
+# form survives every crate the remaining nodes legitimately add, and by now is
+# stricter than the fixed list: that one would have accepted any unowned crate once
+# a second member existed. See decisions.md D16.
+#
+# Asked of cargo rather than grepped out of the manifests, so a member added by any
+# means is caught.
+echo "Checking every workspace crate is owned by a node..."
+graph="plan/v0.1.0/graph.yaml"
+[ -f "$graph" ] || fail "build graph not found at $graph, which is where crate ownership is declared"
+
+declared=$(grep -oE -- '-p [a-z0-9_-]+' "$graph" | awk '{print $2}' | sort -u)
 members=$(cargo metadata --no-deps --format-version 1 \
-    | python3 -c 'import json,sys; print(" ".join(sorted(p["name"] for p in json.load(sys.stdin)["packages"])))')
-if [ "$members" != "trestle-cli" ]; then
-    fail "workspace must contain trestle-cli and nothing else; T00 creates no library crates. Found: $members"
-fi
+    | python3 -c 'import json,sys; print("\n".join(sorted(p["name"] for p in json.load(sys.stdin)["packages"])))')
+
+for member in $members; do
+    if ! echo "$declared" | grep -qxF -- "$member"; then
+        fail "workspace crate '$member' is named by no node's oracle in $graph. Every crate is owned by the node that creates it; if this crate is real, amend the plan to name it."
+    fi
+done
+echo "  ✓ $(echo "$members" | wc -l | tr -d ' ') workspace crate(s), all declared in $graph"
 
 echo "Checking CI workflow runs same commands as oracle..."
 workflow_file=".github/workflows/check.yaml"

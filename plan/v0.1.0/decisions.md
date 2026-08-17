@@ -4,7 +4,7 @@ Questions that must not be answered by an unattended agent. Each names the nodes
 it blocks. Resolve by appending the answer and marking `RESOLVED <date>`, then
 unblock the node in `graph.yaml`.
 
-**All fourteen are resolved** (`D0`–`D6`, `D8`–`D15`) and one is deferred to v0.2.0
+**All sixteen are resolved** (`D0`–`D6`, `D8`–`D16`) and one is deferred to v0.2.0
 (`D7`). Nothing blocks the graph.
 
 The two that shaped everything else are `D5` (control is inverted — the agent drives
@@ -554,9 +554,59 @@ conflict exists in the developer-tools space.
 
 ---
 
+## D16 — Who may change an oracle, and what happens when a later node makes one impossible to pass?
+
+**Blocks:** nothing directly, but governs every node that adds a crate — T02, T05,
+T09 and nine others — **RESOLVED 2026-08-17: derive the assertion from the graph
+instead of freezing a snapshot of it. Repairing an assertion a later node made
+counterfactual is legitimate and recorded here; editing an oracle so that your own
+node goes green is not, and never becomes so.**
+
+Surfaced by T16. T00's oracle asserted that the workspace contained `trestle-cli`
+**and nothing else**, with sound reasoning: T00 creates no library crates, so a crate
+present at that point would be a lie about progress. Then T16 added `trestle-egress`
+— exactly as `graph.yaml` says it should — and T00's oracle could never pass again.
+
+Options: **(a)** leave it, and label the script a point-in-time gate rather than a
+standing check. **(b)** derive the legitimate crate set from `graph.yaml`, which
+already names the crate each node owns in that node's oracle (`cargo test -p
+trestle-plan`). **(c)** keep the fixed list and extend it each time a crate lands.
+
+Rejected: **(a)** — a `done` node whose oracle fails when re-run is precisely what
+this product sells against. Under `D9` the oracle *is* the record of done, so an
+oracle that cannot run leaves that node with no record, only a memory of one.
+**(c)** — a hand-maintained list drifts, and it would require twelve further nodes to
+each edit T00's oracle, which is the act the hard rules forbid. Making the forbidden
+thing routine is how a rule stops meaning anything.
+
+**(b)** is also strictly stronger than what it replaced: the fixed list would have
+accepted any unowned crate the moment a second member legitimately existed, whereas
+the derived form rejects a crate no node claims however many crates exist. It fails
+on a typo'd crate name and on an `AGENTS.md`-banned name like `trestle-helpers`
+alike, because neither appears in the graph.
+
+**The general rule, since this recurs:** two acts that look similar and are not.
+
+| Act | Verdict |
+|---|---|
+| Editing an oracle so the node you are executing passes | **Forbidden.** No exceptions, no escalation path. |
+| Weakening or deleting a test to go green | **Forbidden.** |
+| Repairing an assertion that a *later* node made counterfactual | **Allowed, by a human, recorded here.** |
+
+The test that separates them: *does this change make the node I am currently working
+on pass?* If yes, stop. Here the answer was no — T16's oracle is
+`cargo test -p trestle-egress`, which is unaffected by anything in
+`scripts/check-workspace.sh`.
+
+One consequence worth acting on separately: that check is now a **standing** check
+rather than a point-in-time one, so it belongs in CI. Deliberately not done in the
+same change, because T16 is editing the workflow file.
+
+---
+
 ## Open
 
-**Open: none.** D0–D6 and D8–D15 are resolved; D7 is deferred to v0.2.0.
+**Open: none.** D0–D6 and D8–D16 are resolved; D7 is deferred to v0.2.0.
 
 That is not an invitation to stop thinking. `D3`'s "useful, not accurate" bar and
 `D9`'s "loud, not prevented" limit are the two most likely to be quietly violated
