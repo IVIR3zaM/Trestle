@@ -1,0 +1,72 @@
+trestle_plan: "1"
+shape: hybrid
+name: extract-and-migrate
+
+goal: >
+  Extract the reporting module from the monolith, then migrate its callers one at a
+  time. The extraction is a contract job with a clear dependency order; the migration
+  is repetitive work best carried by iteration.
+
+done_when: >
+  No caller imports the monolith's reporting code, and the extracted module's suite
+  passes against every caller.
+
+# The per-iteration check for the units that are iterated. A hybrid needs this for
+# the same reason a loop does: its queue items carry no oracle of their own.
+oracle:
+  command: make test
+  provenance:
+    source: discovered
+
+journal: journal.md
+
+rules:
+  - id: R1
+    text: A caller is migrated only when its own suite passes against the extracted module.
+    status: active
+
+units:
+  - id: H01
+    title: Extract the reporting module
+    deps: []
+    tier: standard
+    done_when: The module builds and tests standalone, with no import of the monolith.
+    oracle:
+      command: make test-reporting
+      provenance:
+        source: unit
+
+  - id: H02
+    title: Migrate callers
+    deps: [H01]
+    tier: cheap
+    journal: journal.md
+    # A graph unit that is itself iterated — this is what makes hybrid one schema
+    # rather than three. Readiness comes from `deps`; the inner work comes from
+    # `order`.
+    queue:
+      - id: H02.1
+        title: Migrate the billing caller
+        order: 1
+      - id: H02.2
+        title: Migrate the export caller
+        order: 2
+      - id: H02.3
+        title: Migrate the admin dashboard caller
+        order: 3
+
+  - id: H03
+    title: Delete the monolith's reporting code
+    deps: [H02]
+    tier: standard
+    gate: human
+    oracle:
+      command: make test && make lint
+      provenance:
+        source: unit
+    extra_oracles:
+      - command: npm run sec:authz
+        provenance:
+          source: standard
+          rule_id: SEC-04
+          citation: "§14.2"

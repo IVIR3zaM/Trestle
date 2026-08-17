@@ -1,0 +1,60 @@
+# Forward-compatibility fixture. Every key below that v0.1.0 does not implement must
+# survive a round trip untouched, and must not make the plan fail to load. Two
+# separate promises:
+#
+#   1. Multi-repo is RESERVED, not precluded (T02a acceptance). A unit may name its
+#      `repo`; nothing in v0.1.0 acts on it, and a v0.2.0 multi-repo plan must not
+#      require a breaking change to this format.
+#   2. Unknown keys are ignored on read and preserved on write, so a plan written by
+#      a newer Trestle still loads in an older one. `schedule` and `budget_ceiling`
+#      below are deliberately not in the schema — they stand in for whatever v0.2.0
+#      actually adds.
+trestle_plan: "1"
+shape: graph
+name: two-repo-migration
+
+goal: >
+  Move the shared client library out of the service repository and into its own, then
+  update both sides. Spans two repositories, which v0.1.0 cannot execute but must be
+  able to read.
+
+done_when: Both repositories build against the extracted library.
+
+# Not in the v0.1.0 schema. Must round-trip, must not be fatal.
+schedule:
+  nightly: false
+budget_ceiling: unset
+
+units:
+  - id: M01
+    title: Extract the client library into its own repository
+    deps: []
+    tier: standard
+    repo: acme/client-lib
+    oracle:
+      command: cargo test
+      provenance:
+        source: discovered
+
+  - id: M02
+    title: Point the service at the published library
+    deps: [M01]
+    tier: standard
+    repo: acme/service
+    oracle:
+      command: cargo test --workspace
+      provenance:
+        source: discovered
+    # Also unknown: a per-unit key from a later version.
+    retry_budget: 2
+
+  - id: M03
+    title: Delete the vendored copy
+    deps: [M02]
+    tier: cheap
+    repo: acme/service
+    gate: human
+    oracle:
+      command: cargo test --workspace
+      provenance:
+        source: unit

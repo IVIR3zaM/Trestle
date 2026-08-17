@@ -1,0 +1,23 @@
+plan: extract-and-migrate
+
+units:
+  - id: H01
+    status: done
+    oracle_result:
+      command: make test-reporting
+      exit: 0
+  - id: H02
+    status: in_progress
+    iteration: 2
+    note: billing done, export in flight
+  - id: H02.1
+    status: done
+    iteration: 1
+  - id: H02.2
+    status: in_progress
+    iteration: 2
+  - id: H02.3
+    status: n_a
+    note: the admin dashboard was retired before this unit came up
+  - id: H03
+    status: todo

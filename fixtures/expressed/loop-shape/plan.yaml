@@ -1,0 +1,128 @@
+trestle_plan: "1"
+shape: loop
+name: converge-onto-upstream-template
+
+goal: >
+  Make this repository indistinguishable from a fresh clone of the upstream template
+  that was fully onboarded and kept current, so that future upstream releases apply
+  cleanly and improvements born here can flow back.
+
+done_when: >
+  The version files match upstream, every local-only improvement is either
+  contributed or explicitly deferred with a reason, and a dry-run of the upstream
+  update flow completes with no manual intervention.
+
+# The loop's per-iteration check. Queue items carry no oracle of their own — for this
+# shape verification binds to the iteration, which is how "no oracle, no node" stays
+# true here. Every journal entry records what this produced.
+oracle:
+  command: npm test && npm run build
+  provenance:
+    source: discovered
+
+journal: journal.md
+
+rules:
+  - id: R1
+    text: >
+      The working tree must stay usable at the end of every iteration. Never leave it
+      half-migrated.
+    status: active
+
+  - id: R2
+    text: Anything queued to flow upstream is generalised first — no local specifics.
+    status: active
+
+  - id: R3
+    text: Contributions are batched and sent at the end of the effort.
+    status: superseded
+    superseded_by: R6
+    reason: >
+      Batching lost the reasoning behind each change by the time it was written up.
+      Kept here as the audit trail; do not follow it.
+
+  - id: R4
+    text: Never add the upstream as a permanent remote.
+    status: active
+
+  - id: R5
+    text: >
+      Do not stall on a decision that is the maintainer's to make — record it as
+      blocked with the question, and take the next item.
+    status: active
+
+  - id: R6
+    text: >
+      Contribute one entry at a time, at the moment it lands, while the reasoning is
+      still fresh.
+    status: active
+    replaces: R3
+
+phases:
+  - id: P0
+    title: scaffold
+  - id: P1
+    title: reconcile divergence
+  - id: P2
+    title: close out
+
+units:
+  - id: "0.1"
+    title: Adopt upstream directory layout
+    phase: P0
+    order: 1
+
+  - id: "0.2"
+    title: Adopt upstream config format
+    phase: P0
+    order: 2
+
+  - id: "1.1"
+    title: "Classify every diff: upstream-ahead / local-ahead / local-only"
+    phase: P1
+    order: 3
+
+  - id: "1.2"
+    title: Apply upstream-ahead changes
+    phase: P1
+    order: 4
+
+  - id: "1.3"
+    title: Generalise local-ahead changes for upstream
+    phase: P1
+    order: 5
+
+  - id: "1.4"
+    title: Retire the local build script in favour of upstream's
+    phase: P1
+    order: 6
+
+  - id: "2.1"
+    title: Dry-run the upstream update flow
+    phase: P2
+    order: 7
+
+  - id: "2.2"
+    title: Retire this effort's tooling
+    phase: P2
+    order: 8
+
+deferred:
+  - id: X1
+    item: Adopt upstream's test runner
+    why: >
+      Migration touches every test file; unrelated to convergence and would dominate
+      the diff.
+    revisit_when: After the convergence effort closes.
+
+  - id: X2
+    item: Contribute the local caching layer
+    why: >
+      Genuinely useful upstream, but it depends on a local-only config key that would
+      have to be generalised first.
+    revisit_when: If upstream adds a plugin point for it.
+
+  - id: X3
+    item: Delete the compatibility shim
+    why: Two downstream consumers still import it.
+    revisit_when: Once both have migrated.

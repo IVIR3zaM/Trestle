@@ -1,0 +1,77 @@
+trestle_plan: "1"
+shape: graph
+name: self-hostable-runtime
+
+goal: >
+  An internal service is deployable only to one managed cloud. Add a self-hostable
+  container option sharing one implementation, without breaking existing deployments.
+
+units:
+  - id: G01
+    title: Architecture contract for two runtimes
+    deps: []
+    tier: deep
+    gate: human
+    oracle:
+      command: bash scripts/check-arch-doc.sh
+      provenance:
+        source: unit
+
+  - id: G02
+    title: Extract runtime-neutral core
+    deps: [G01]
+    tier: standard
+    oracle:
+      command: cd core && npm test
+      provenance:
+        source: discovered
+
+  - id: G03
+    title: Embedded database store
+    deps: [G02]
+    tier: standard
+    body: units/G03.md
+    done_when: >
+      The same suites that pass against the in-memory double pass against the
+      embedded store, unmodified.
+    oracle:
+      command: cd core && STORE=embedded npm test
+      provenance:
+        source: unit
+
+  - id: G04
+    title: Config-file credential provider
+    deps: [G02]
+    tier: cheap
+    oracle:
+      command: cd core && npm test -- credentials
+      provenance:
+        source: discovered
+
+  - id: G05
+    title: Standalone HTTP server
+    deps: [G02, G03, G04]
+    tier: standard
+    oracle:
+      command: cd server && npm test
+      provenance:
+        source: discovered
+
+  - id: G06
+    title: Container packaging
+    deps: [G05]
+    tier: standard
+    oracle:
+      command: bash docker/smoke.sh
+      provenance:
+        source: unit
+
+  - id: G07
+    title: Release
+    deps: [G06]
+    tier: deep
+    gate: human
+    oracle:
+      command: bash scripts/test-all.sh
+      provenance:
+        source: unit

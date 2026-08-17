@@ -1,0 +1,29 @@
+plan: self-hostable-runtime
+
+units:
+  - id: G01
+    status: done
+    oracle_result:
+      command: bash scripts/check-arch-doc.sh
+      exit: 0
+  - id: G02
+    status: done
+    oracle_result:
+      command: cd core && npm test
+      exit: 0
+  - id: G03
+    status: done
+    oracle_result:
+      command: cd core && STORE=embedded npm test
+      exit: 0
+  - id: G04
+    status: done
+    oracle_result:
+      command: cd core && npm test -- credentials
+      exit: 0
+  - id: G05
+    status: todo
+  - id: G06
+    status: todo
+  - id: G07
+    status: todo
