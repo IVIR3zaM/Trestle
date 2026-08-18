@@ -4,7 +4,7 @@ Questions that must not be answered by an unattended agent. Each names the nodes
 it blocks. Resolve by appending the answer and marking `RESOLVED <date>`, then
 unblock the node in `graph.yaml`.
 
-**All sixteen are resolved** (`D0`–`D6`, `D8`–`D16`) and one is deferred to v0.2.0
+**All seventeen are resolved** (`D0`–`D6`, `D8`–`D17`) and one is deferred to v0.2.0
 (`D7`). Nothing blocks the graph.
 
 The two that shaped everything else are `D5` (control is inverted — the agent drives
@@ -604,9 +604,40 @@ same change, because T16 is editing the workflow file.
 
 ---
 
+## D17 — Which dependency licences does Trestle accept?
+
+**Blocks:** nothing directly; taxes every node that wants `serde` derive —
+**RESOLVED 2026-08-18: `MIT`, `Apache-2.0`, `Unicode-3.0`. The list loosens one
+entry at a time, each with a reason in `deny.toml`.**
+
+Surfaced by T02b. `deny.toml` allowed only `MIT` and `Apache-2.0`, which excludes
+`Unicode-3.0` — carried by `unicode-ident`, which arrives through `proc-macro2`/`syn`,
+which is to say through `serde`'s `derive` feature. T02b therefore hand-wrote its
+decode layer rather than derive it.
+
+That worked out well *there*: hand-written decoding is what made path-qualified error
+messages like `units[3].oracle: required when neither gate, order, nor a non-empty
+queue is present` possible, and those messages are a product surface under `D5`. But
+as a standing policy it is a tax on every remaining crate for no benefit —
+`Unicode-3.0` is permissive and imposes no obligation `Apache-2.0` does not already
+accept. Three more nodes would each have discovered it and each invented a different
+workaround.
+
+Rejected: **leaving it strict** — the strictness was buying nothing and costing real
+work, which is the definition of ceremony this project claims to be against.
+**Allowing a broad permissive set up front** (`BSD-3-Clause`, `ISC`, `Zlib`, …) —
+`deny.toml`'s own opening comment says loosening is a deliberate decision, and adding
+licences nothing in the tree needs would make the next addition unremarkable.
+
+Distinguish this from what Trestle *grants*: the product is Apache-2.0 (`LICENSE`,
+and `Cargo.toml` since it wrongly claimed `MIT OR Apache-2.0`). What it *accepts*
+from dependencies is a separate question, and this is that one.
+
+---
+
 ## Open
 
-**Open: none.** D0–D6 and D8–D16 are resolved; D7 is deferred to v0.2.0.
+**Open: none.** D0–D6 and D8–D17 are resolved; D7 is deferred to v0.2.0.
 
 That is not an invitation to stop thinking. `D3`'s "useful, not accurate" bar and
 `D9`'s "loud, not prevented" limit are the two most likely to be quietly violated

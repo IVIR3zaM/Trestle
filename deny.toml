@@ -5,7 +5,15 @@
 [advisories]
 
 [licenses]
-allow = ["MIT", "Apache-2.0"]
+# Unicode-3.0 is carried by `unicode-ident`, which arrives through proc-macro2/syn —
+# i.e. through serde's `derive` feature, which most crates in this workspace will want.
+# T02b hand-wrote its decode layer to avoid it; that worked out there (it is what made
+# path-qualified error messages possible) but as a standing policy it taxes every future
+# node to no benefit. Unicode-3.0 is permissive and imposes no obligation Apache-2.0 does
+# not already accept, so the strictness was costing real work and buying nothing.
+#
+# The file's stance still holds: this list loosens one entry at a time, with a reason.
+allow = ["MIT", "Apache-2.0", "Unicode-3.0"]
 
 [bans]
 multiple-versions = "deny"
