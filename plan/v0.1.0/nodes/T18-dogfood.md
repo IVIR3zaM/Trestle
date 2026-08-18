@@ -3,7 +3,7 @@ id: T18
 title: Dogfood — plan a real repo end to end, from the editor
 tier: deep
 gate: human
-deps: [T10, T11, T14, T15, T16, T20, T23, T24, T25, T26]
+deps: [T10, T11, T14, T15, T16, T20, T23, T24, T25, T26, T27]
 ---
 
 ## Goal

@@ -3,7 +3,7 @@ id: T04
 title: Harness integration contract
 tier: deep
 gate: human
-deps: [T01]
+deps: [T00, T01]
 ---
 
 ## Goal

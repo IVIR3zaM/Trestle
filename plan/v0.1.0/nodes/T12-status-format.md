@@ -2,7 +2,7 @@
 id: T12
 title: Status + journal store
 tier: standard
-deps: [T02]
+deps: [T02b]
 ---
 
 ## Goal

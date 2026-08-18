@@ -2,7 +2,7 @@
 id: T16
 title: Egress test — prove no outbound connections
 tier: standard
-deps: [T01]
+deps: [T00, T01]
 ---
 
 ## Goal

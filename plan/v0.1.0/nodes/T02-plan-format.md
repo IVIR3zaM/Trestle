@@ -3,7 +3,7 @@ id: T02
 title: Plan format spec (graph, loop, hybrid in one schema)
 tier: deep
 gate: human
-deps: [T01]
+deps: [T00, T01]
 status: split
 ---
 

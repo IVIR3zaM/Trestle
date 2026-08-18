@@ -2,7 +2,7 @@
 id: T07
 title: Synthesis prompt + plan validation gauntlet
 tier: deep
-deps: [T02, T03, T06, T19]
+deps: [T02b, T03, T06, T19, T28]
 ---
 
 ## Goal
@@ -33,6 +33,26 @@ The rules, each as a check:
 | Unresolved questions block specific units | every open decision must name at least one unit, and those units must be `blocked` |
 | Human gates where required | product judgement, irreversible actions, and anything the rubric flagged low-confidence must carry `gate: human` |
 | Tiers are abstract | reject any vendor model name in the plan (T19) |
+
+### Checks earned by this repo's own build, not imagined
+
+Each of these came from a real failure while building Trestle. They are here
+because **a learning that lives only in `DEVELOPING.md` or the bootstrap executor
+never reaches a user** — nothing in either ships. The only routes to a user's plan
+are this gauntlet, the schema, a shipped prompt, and CLI behaviour. So a lesson
+worth keeping has to become one of those, and the gauntlet is the strongest of the
+four because it is a check rather than a sentence.
+
+| Rule | Check | What it came from |
+|---|---|---|
+| **A unit body must not restate structural fields** | reject a `units/<id>.md` whose frontmatter carries `deps`, `tier` or `gate` — the index is authoritative | Ten node files in this repo's own plan drifted from `graph.yaml`, six of them for months. Nothing reads a body file's frontmatter, so a stale `deps:` there misleads exactly the reader who opened it to understand the unit |
+| **The oracle must reach what the acceptance claims** | for each `done_when`/acceptance clause naming a command or check, that command must appear in the unit's `oracle` or `extra_oracles`, or the unit must carry an explicit gap note | `fixtures/source/graph-shape/decisions.md` says it outright — *"G05's oracle does not run the build, so a future pass could mark it done over a still-broken build — the oracle is narrower than the problem."* T16 hit the same shape: its acceptance named CI, its oracle did not run CI, and it was marked done while that half was unverified |
+| **A plan's own examples obey the plan's own rules** | any example or fixture the plan embeds is validated by the same gauntlet as the plan | T02a's spec stated a rule its own worked example violated, and only implementing the rule in a parser surfaced it |
+| **One definition per fact** | *unenforceable — prompt only, and labelled as such* | T05 and T03 each hold a canonical list of the shape signals because T03 did not exist yet. No check can tell that two lists are meant to be the same list; the prompt must ask, and `AGENTS.md` §5 says to name what cannot be checked rather than imply it can |
+
+The last row is the honest one. Three of these are commands; one is a wish, and it
+is marked as a wish. A gauntlet that pretended otherwise would be making exactly
+the claim this project exists to stop people making.
 
 The imperative-title check is the one worth arguing about, and it is worth having
 anyway: *"the existing suites pass unmodified against the new store"* survives

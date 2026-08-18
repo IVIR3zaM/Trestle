@@ -2,7 +2,7 @@
 id: T08
 title: In-repo convention discovery + classification
 tier: standard
-deps: [T02, T05]
+deps: [T02b, T05]
 ---
 
 ## Goal

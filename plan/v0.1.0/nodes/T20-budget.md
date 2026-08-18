@@ -2,7 +2,7 @@
 id: T20
 title: Budget estimation (pre-run, estimate-only)
 tier: standard
-deps: [T02, T19]
+deps: [T02b, T19]
 ---
 
 ## Goal

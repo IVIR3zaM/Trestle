@@ -2,7 +2,7 @@
 id: T06
 title: Decision store + question schema + interrogation prompt
 tier: deep
-deps: [T02, T05]
+deps: [T02b, T05]
 ---
 
 ## Goal

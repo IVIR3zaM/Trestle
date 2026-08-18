@@ -38,5 +38,12 @@ jobs:
       - name: cargo test -p trestle-egress -- --include-ignored
         run: cargo test -p trestle-egress -- --include-ignored
 
+      # The plan's own consistency. Not a cargo check, but the same class of
+      # guarantee: graph.yaml and the node files state a node's deps twice, and
+      # two statements of one fact drift. Ten had already drifted when this was
+      # written, six of them predating the split that prompted it.
+      - name: plan consistency
+        run: bash scripts/check-plan-consistency.sh
+
       - name: cargo deny check
         run: cargo install cargo-deny && cargo deny check

@@ -2,7 +2,7 @@
 id: T05
 title: Repo survey + code-graph extraction
 tier: standard
-deps: [T01]
+deps: [T00, T01]
 ---
 
 ## Goal

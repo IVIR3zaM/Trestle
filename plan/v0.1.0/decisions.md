@@ -4,8 +4,9 @@ Questions that must not be answered by an unattended agent. Each names the nodes
 it blocks. Resolve by appending the answer and marking `RESOLVED <date>`, then
 unblock the node in `graph.yaml`.
 
-**All seventeen are resolved** (`D0`–`D6`, `D8`–`D17`) and one is deferred to v0.2.0
-(`D7`). Nothing blocks the graph.
+**Seventeen are resolved** (`D0`–`D6`, `D8`–`D17`), one is deferred to v0.2.0
+(`D7`), and one is **open** (`D18` — the pre-mortem step). Nothing currently ready
+is blocked on it; it blocks T07 and T14, which are several layers out.
 
 The two that shaped everything else are `D5` (control is inverted — the agent drives
 Trestle) and `D2` (one plan format with a `shape:` discriminator). Read those first
@@ -635,9 +636,56 @@ from dependencies is a separate question, and this is that one.
 
 ---
 
+## D18 — Does a plan get a pre-mortem before the user sees it?
+
+**Blocks:** T07, T14, and — if the answer puts it in the plan — T02a/T02b —
+**OPEN.**
+
+Proposed: between **absorb** and **show**, the agent runs a pre-mortem against the
+draft. *Assume this plan failed. Why?* Then every failure mode it names must resolve
+to something structural rather than to prose.
+
+The argument for it is this repo's own build. Every expensive thing that went wrong
+here was foreseeable by someone asking that question for sixty seconds: a worktree
+branched from a stale base, a node marked done while half its acceptance was
+unverified, two canonical copies of one list, a spec that contradicted its own
+example. None needed new information — only the question.
+
+The argument against is that it is the exact ceremony this product exists to
+prevent. A two-hour loop with a fast test suite does not need a pre-mortem, and
+forcing one is how a tool teaches people to click through it.
+
+**What makes it a mechanism rather than a wish** (`D0`/`D5`): the pre-mortem is
+inference, so it is the *agent's* step against a prompt Trestle ships. Trestle's
+half is validating the artifact. Each identified failure mode must resolve to one
+of four things, all checkable:
+
+- a unit added or changed, naming the unit id
+- an extra oracle attached to a named unit
+- a `gate: human` on a named unit
+- an **accepted risk**, with a reason — allowed, but never silent
+
+A failure mode left as prose fails validation. That is the same move as `D9`'s
+override and T01's threat-model gaps: the escape hatch exists and is loud.
+
+Open sub-questions, which is why this is not resolved:
+
+1. **Where does the output live** — a `risks:` section in the plan (format change,
+   so T02a and T02b), or a sibling `premortem.md` in the plan directory (no format
+   change, but a second artifact consumers must know about)?
+2. **Blocking or advisory** — does `trestle plan write --draft` refuse without it,
+   or does it warn? And if blocking, for every plan or only above a size or
+   confidence threshold?
+3. **Who runs it** — the `planner` role that wrote the plan, or, where a `verifier`
+   is configured, that one instead? The second is stronger for the same reason
+   `D14` makes review asymmetric: the author is the worst-placed party to imagine
+   their own plan failing.
+
+---
+
 ## Open
 
-**Open: none.** D0–D6 and D8–D17 are resolved; D7 is deferred to v0.2.0.
+**Open: `D18`.** D0–D6 and D8–D17 are resolved; D7 is deferred to v0.2.0.
 
 That is not an invitation to stop thinking. `D3`'s "useful, not accurate" bar and
 `D9`'s "loud, not prevented" limit are the two most likely to be quietly violated
