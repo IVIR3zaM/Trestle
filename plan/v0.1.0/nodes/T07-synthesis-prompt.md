@@ -63,6 +63,30 @@ detectable in the text.
 hand-waved acceptance line. That rule is the difference between a plan that can be
 executed unattended and one that only looks like it, and it is check #1 above.
 
+### The pre-mortem check (`D18`)
+
+`trestle plan write --draft` **refuses a plan with no `premortem` block.** That is
+the only enforcement available: under `D0`/`D5` Trestle performs no inference, so it
+cannot make an agent think and cannot observe whether it did — the artifact is all
+there is. Say that limit out loud wherever the step is described; a doc implying the
+thinking is guaranteed would overclaim exactly as one implying the `D9` override is
+prevented would.
+
+| Rule | Check |
+|---|---|
+| The pre-mortem ran | reject a draft with no `premortem` block. Presence is the signal — an absent or empty `risks` list is ambiguous between *found nothing* and *never ran* |
+| Findings changed the plan | every `findings` entry needs `hardened_by`; a finding with no change belongs in `risks` instead |
+| Accepted risks are reasoned | every `risks` entry needs `why_not_hardened`, exactly as `deferred` needs `revisit_when` |
+| Named units exist | every unit id in `findings[].units` or `risks[].units` must name a real unit |
+
+**The purpose is a hardened plan, not a risk register.** A pre-mortem that produced a
+tidy list and an unchanged plan has done nothing — it documented the danger instead
+of removing it. The prompt must say so in those terms.
+
+The block is required by *presence*, never by volume. A small loop's pre-mortem
+legitimately finds nothing and costs two sentences, which is what keeps this from
+becoming the ceremony the product exists to prevent.
+
 ## The prompt
 
 `templates/synthesize.md`, shipped through T04. It must:
@@ -77,12 +101,23 @@ executed unattended and one that only looks like it, and it is check #1 above.
 - when the rubric says *both* (T03), require **both plans** plus the tradeoff
   comparison
 
+`templates/premortem.md`, also shipped through T04. Run by the `verifier` where one
+is configured and the `planner` otherwise (`D14`'s asymmetry: an author is the
+worst-placed party to imagine their own plan failing), and it must cost single-agent
+users nothing — with no verifier configured the planner runs it and the flow is
+indistinguishable. It must ask for concrete failure modes tied to named units, and
+require each to be **fixed in the plan** unless it genuinely cannot be, in which case
+it becomes a `risks` entry carrying why.
+
 ## Acceptance
 
 - `cargo test -p trestle-plan --test gauntlet` — each rule above has a fixture
   that violates it and is rejected with a message naming the offending unit and
   path; a valid plan of each of the three shapes passes; a cyclic plan is rejected
   (assert it, don't assume the sort catches it).
+- The pre-mortem rules each get a fixture too: a draft with no `premortem`, a
+  finding with no `hardened_by`, a risk with no `why_not_hardened`, and a
+  `findings[].units` naming a unit that does not exist.
 - **Recorded-transcript corpus.** Capture real agent output once, for at least
   three goals across the fixture repos, and commit it under
   `fixtures/transcripts/`. Assert that the gauntlet accepts what a good agent

@@ -4,7 +4,12 @@
   "title": "Trestle plan",
   "description": "One schema for all three shapes, discriminated by `shape`. Holds definition only: a unit's state lives in status.yaml so that execution never writes a plan body.",
   "type": "object",
-  "required": ["trestle_plan", "shape", "name", "goal"],
+  "required": [
+    "trestle_plan",
+    "shape",
+    "name",
+    "goal"
+  ],
   "additionalProperties": true,
   "properties": {
     "trestle_plan": {
@@ -13,7 +18,11 @@
     },
     "shape": {
       "description": "graph: units with dependency edges. loop: an ordered queue with a journal. hybrid: a graph whose units may each carry their own queue and journal.",
-      "enum": ["graph", "loop", "hybrid"]
+      "enum": [
+        "graph",
+        "loop",
+        "hybrid"
+      ]
     },
     "name": {
       "type": "string",
@@ -28,7 +37,7 @@
       "type": "string"
     },
     "oracle": {
-      "description": "The per-iteration check. Required for loop and hybrid, where verification binds to the iteration rather than to a queue item — this is what keeps 'no oracle, no node' true for a shape whose units have none of their own.",
+      "description": "The per-iteration check. Required for loop and hybrid, where verification binds to the iteration rather than to a queue item \u2014 this is what keeps 'no oracle, no node' true for a shape whose units have none of their own.",
       "$ref": "#/$defs/oracle"
     },
     "rules": {
@@ -36,16 +45,32 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "text", "status"],
+        "required": [
+          "id",
+          "text",
+          "status"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "text": { "type": "string", "minLength": 1 },
-          "status": { "enum": ["active", "superseded"] },
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "active",
+              "superseded"
+            ]
+          },
           "superseded_by": {
             "description": "Required when status is superseded. A rule that is merely struck through tells a reader to stop following it but not what to follow instead.",
             "type": "string"
           },
-          "replaces": { "type": "string" },
+          "replaces": {
+            "type": "string"
+          },
           "reason": {
             "description": "Why it was superseded. Required when status is superseded.",
             "type": "string"
@@ -53,8 +78,22 @@
         },
         "allOf": [
           {
-            "if": { "properties": { "status": { "const": "superseded" } }, "required": ["status"] },
-            "then": { "required": ["superseded_by", "reason"] }
+            "if": {
+              "properties": {
+                "status": {
+                  "const": "superseded"
+                }
+              },
+              "required": [
+                "status"
+              ]
+            },
+            "then": {
+              "required": [
+                "superseded_by",
+                "reason"
+              ]
+            }
           }
         ],
         "additionalProperties": true
@@ -65,10 +104,17 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "title"],
+        "required": [
+          "id",
+          "title"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "title": { "type": "string" }
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
         },
         "additionalProperties": true
       }
@@ -76,18 +122,32 @@
     "units": {
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/$defs/unit" }
+      "items": {
+        "$ref": "#/$defs/unit"
+      }
     },
     "deferred": {
       "description": "Consciously postponed, and distinct from forgotten. Not units: they have no oracle and no status, so unit counts, readiness and estimates are not polluted by work nobody intends to do this time.",
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "item", "why", "revisit_when"],
+        "required": [
+          "id",
+          "item",
+          "why",
+          "revisit_when"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "item": { "type": "string" },
-          "why": { "type": "string", "minLength": 1 },
+          "id": {
+            "type": "string"
+          },
+          "item": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string",
+            "minLength": 1
+          },
           "revisit_when": {
             "description": "What would change the answer. An entry without it is indistinguishable from something that was dropped.",
             "type": "string",
@@ -96,13 +156,112 @@
         },
         "additionalProperties": true
       }
+    },
+    "premortem": {
+      "description": "Evidence that the plan was stress-tested before a human was asked to review it (D18). Its PURPOSE is that the plan changed: findings record what was hardened. `risks` is the residue \u2014 only what could not be hardened. Presence of this block is what distinguishes 'ran and found nothing' from 'never ran', which is why write refuses without it. A determined agent can write one without thinking; this makes skipping it visible and deliberate, not impossible.",
+      "type": "object",
+      "required": [
+        "run_by",
+        "findings",
+        "risks"
+      ],
+      "properties": {
+        "run_by": {
+          "description": "The role that ran it \u2014 the verifier where one is configured, the planner otherwise (D14's asymmetry: an author is the worst-placed party to imagine their own plan failing).",
+          "enum": [
+            "planner",
+            "verifier"
+          ]
+        },
+        "findings": {
+          "description": "What the pre-mortem found AND what changed because of it. An empty list is legitimate on a small plan; a finding with no change belongs in risks instead.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "failure",
+              "hardened_by"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "failure": {
+                "type": "string",
+                "minLength": 1
+              },
+              "hardened_by": {
+                "description": "How the plan changed: a unit added or altered, an extra oracle, or a human gate. Name the unit ids it touched.",
+                "type": "string",
+                "minLength": 1
+              },
+              "units": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "risks": {
+          "description": "Only what could not be hardened. Each needs a reason, exactly as `deferred` needs revisit_when \u2014 an entry without one is indistinguishable from something waved through.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "risk",
+              "why_not_hardened"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "risk": {
+                "type": "string",
+                "minLength": 1
+              },
+              "why_not_hardened": {
+                "type": "string",
+                "minLength": 1
+              },
+              "units": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
     }
   },
   "allOf": [
     {
-      "if": { "properties": { "shape": { "enum": ["loop", "hybrid"] } }, "required": ["shape"] },
+      "if": {
+        "properties": {
+          "shape": {
+            "enum": [
+              "loop",
+              "hybrid"
+            ]
+          }
+        },
+        "required": [
+          "shape"
+        ]
+      },
       "then": {
-        "required": ["oracle", "journal"],
+        "required": [
+          "oracle",
+          "journal"
+        ],
         "properties": {
           "journal": {
             "description": "Path to the append-only journal, relative to the plan directory. NOT optional for a loop: a loop without a journal is a list someone will lose track of, and collapsing one into a chain-shaped graph loses exactly this.",
@@ -112,30 +271,75 @@
       }
     },
     {
-      "if": { "properties": { "shape": { "const": "graph" } }, "required": ["shape"] },
-      "then": { "required": ["units"] }
+      "if": {
+        "properties": {
+          "shape": {
+            "const": "graph"
+          }
+        },
+        "required": [
+          "shape"
+        ]
+      },
+      "then": {
+        "required": [
+          "units"
+        ]
+      }
     }
   ],
   "$defs": {
     "oracle": {
       "description": "The command that decides done. Never the agent's opinion.",
       "type": "object",
-      "required": ["command"],
+      "required": [
+        "command"
+      ],
       "properties": {
-        "command": { "type": "string", "minLength": 1 },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
         "provenance": {
-          "description": "Where this oracle came from. An oracle attached by an ingested standard carries the clause that caused it, so a reviewer can trace why an extra command is here — otherwise ingested standards become an unexplained pile of commands, which is how people start deleting them.",
+          "description": "Where this oracle came from. An oracle attached by an ingested standard carries the clause that caused it, so a reviewer can trace why an extra command is here \u2014 otherwise ingested standards become an unexplained pile of commands, which is how people start deleting them.",
           "type": "object",
-          "required": ["source"],
+          "required": [
+            "source"
+          ],
           "properties": {
-            "source": { "enum": ["unit", "discovered", "standard", "convention"] },
-            "rule_id": { "type": "string" },
-            "citation": { "type": "string" }
+            "source": {
+              "enum": [
+                "unit",
+                "discovered",
+                "standard",
+                "convention"
+              ]
+            },
+            "rule_id": {
+              "type": "string"
+            },
+            "citation": {
+              "type": "string"
+            }
           },
           "allOf": [
             {
-              "if": { "properties": { "source": { "const": "standard" } }, "required": ["source"] },
-              "then": { "required": ["rule_id", "citation"] }
+              "if": {
+                "properties": {
+                  "source": {
+                    "const": "standard"
+                  }
+                },
+                "required": [
+                  "source"
+                ]
+              },
+              "then": {
+                "required": [
+                  "rule_id",
+                  "citation"
+                ]
+              }
             }
           ],
           "additionalProperties": true
@@ -145,39 +349,64 @@
     },
     "unit": {
       "type": "object",
-      "required": ["id", "title"],
+      "required": [
+        "id",
+        "title"
+      ],
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "title": { "type": "string", "minLength": 1 },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
         "body": {
           "description": "Path to a prose file, relative to the plan directory. Optional: a queue item that is one line does not need a file, and forcing one is ceremony. The index is authoritative for structure either way.",
           "type": "string"
         },
-        "done_when": { "type": "string" },
+        "done_when": {
+          "type": "string"
+        },
         "deps": {
           "description": "'This cannot start until that is done.' Graph and hybrid only; a loop orders by queue position.",
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
         "order": {
           "description": "Queue position for loop and hybrid units.",
           "type": "integer",
           "minimum": 0
         },
-        "phase": { "type": "string" },
+        "phase": {
+          "type": "string"
+        },
         "tier": {
-          "description": "How much thinking a unit is worth. Abstract, and never a vendor model name — a plan naming one stops being portable between harnesses. Advisory under D5.",
-          "enum": ["cheap", "standard", "deep"]
+          "description": "How much thinking a unit is worth. Abstract, and never a vendor model name \u2014 a plan naming one stops being portable between harnesses. Advisory under D5.",
+          "enum": [
+            "cheap",
+            "standard",
+            "deep"
+          ]
         },
         "gate": {
           "description": "human: an unattended agent must not attempt this unit.",
-          "enum": ["human"]
+          "enum": [
+            "human"
+          ]
         },
-        "oracle": { "$ref": "#/$defs/oracle" },
+        "oracle": {
+          "$ref": "#/$defs/oracle"
+        },
         "extra_oracles": {
           "description": "Oracles attached from the user's own standards. Indistinguishable from the unit's own at verification time, and each carries its provenance.",
           "type": "array",
-          "items": { "$ref": "#/$defs/oracle" }
+          "items": {
+            "$ref": "#/$defs/oracle"
+          }
         },
         "repo": {
           "description": "Reserved for v0.2.0 multi-repo plans. Not implemented in v0.1.0, but present so adding it is not a breaking change. A v0.1.0 consumer treats a foreign repo as out of scope rather than failing to parse.",
@@ -186,25 +415,50 @@
         "queue": {
           "description": "Hybrid only: a graph unit that is itself iterated. This is what makes hybrid a graph whose units may carry a queue rather than a third schema.",
           "type": "array",
-          "items": { "$ref": "#/$defs/unit" }
+          "items": {
+            "$ref": "#/$defs/unit"
+          }
         },
-        "journal": { "type": "string" }
+        "journal": {
+          "type": "string"
+        }
       },
       "comment-on-anyOf": "A unit must be verifiable or held by a human: its own oracle, a human gate, a queue position (a loop item, verified per iteration against the plan-level oracle), or a non-empty queue of its own (a hybrid unit whose work IS that queue, delegating verification to it). The fourth alternative was missing until T02b implemented the rule literally and found it rejected this schema's own hybrid fixture.",
       "anyOf": [
-        { "required": ["oracle"] },
-        { "required": ["gate"] },
-        { "required": ["order"] },
-        { "required": ["queue"] }
+        {
+          "required": [
+            "oracle"
+          ]
+        },
+        {
+          "required": [
+            "gate"
+          ]
+        },
+        {
+          "required": [
+            "order"
+          ]
+        },
+        {
+          "required": [
+            "queue"
+          ]
+        }
       ],
       "additionalProperties": true
     },
     "status_record": {
       "description": "The shape of one entry in status.yaml. Kept here so the two files share one definition of a status.",
       "type": "object",
-      "required": ["id", "status"],
+      "required": [
+        "id",
+        "status"
+      ],
       "properties": {
-        "id": { "type": "string" },
+        "id": {
+          "type": "string"
+        },
         "status": {
           "enum": [
             "draft",
@@ -221,34 +475,72 @@
           "description": "Required when status is blocked. The question is a sibling field rather than data inside the status value, so a schema can check it and a consumer never parses an enum.",
           "type": "string"
         },
-        "note": { "type": "string" },
-        "iteration": { "type": "integer" },
+        "note": {
+          "type": "string"
+        },
+        "iteration": {
+          "type": "integer"
+        },
         "oracle_result": {
           "type": "object",
-          "required": ["command", "exit"],
+          "required": [
+            "command",
+            "exit"
+          ],
           "properties": {
-            "command": { "type": "string" },
-            "exit": { "type": "integer" },
-            "at": { "type": "string", "format": "date-time" }
+            "command": {
+              "type": "string"
+            },
+            "exit": {
+              "type": "integer"
+            },
+            "at": {
+              "type": "string",
+              "format": "date-time"
+            }
           },
           "additionalProperties": true
         },
         "override": {
           "description": "D9's recorded override. A distinct permanent state, not a boolean on done: the dashboard renders it differently and status counts it separately, always showing the count even when it is zero, so the absence of overrides is visible too. Loud, not prevented.",
           "type": "object",
-          "required": ["reason", "at"],
+          "required": [
+            "reason",
+            "at"
+          ],
           "properties": {
-            "reason": { "type": "string", "minLength": 1 },
-            "by": { "type": "string" },
-            "at": { "type": "string", "format": "date-time" }
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "by": {
+              "type": "string"
+            },
+            "at": {
+              "type": "string",
+              "format": "date-time"
+            }
           },
           "additionalProperties": true
         }
       },
       "allOf": [
         {
-          "if": { "properties": { "status": { "const": "blocked" } }, "required": ["status"] },
-          "then": { "required": ["blocked_question"] }
+          "if": {
+            "properties": {
+              "status": {
+                "const": "blocked"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "blocked_question"
+            ]
+          }
         }
       ],
       "additionalProperties": true

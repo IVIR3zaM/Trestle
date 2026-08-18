@@ -39,7 +39,7 @@ Each is stated in full below, with its limits. The limits are part of the invari
 an overclaimed guarantee is worse than a stated one, because only the second gets
 checked.
 
-## The six steps
+## The seven steps
 
 Under `D5` the agent and Trestle alternate, and a reader who gets that backwards
 will design the next component backwards — so ownership is a column, not a footnote.
@@ -52,8 +52,17 @@ harness, reasoning against a prompt Trestle shipped.
 | 2. Interrogate | **The agent**, asking **the user**; Trestle stores and lints the questions | A completed survey. That the repo has already been consulted — a question the code could answer is rejected before the user sees it. |
 | 3. Shape | **Trestle scores** (`trestle shape`), the **agent argues with the score** | A survey and the answered decisions. That its own baseline is deterministic and reproducible, so the agent's disagreement is visible as a disagreement. |
 | 4. Absorb | **The agent** proposes, **Trestle validates** (`trestle conventions`, `trestle standards`) | A chosen shape. That every rule it attaches is either backed by a command or labelled unenforceable. |
-| 5. Show | **Trestle** (`trestle ui`, auto-started on the first draft) | A written draft. That it is read-only: the user looks here and decides in the chat. |
-| 6. Write and run | **The agent** calls `trestle plan write`, `trestle next`, `trestle verify`; **`verify` is Trestle's alone** | A validated plan. Never that a unit is done because the agent says so. |
+| 5. Pre-mortem | **The agent** — the `verifier` where one is configured, the `planner` otherwise; **Trestle refuses the draft without it** | A complete draft. That its job is to *change* the plan: `risks` records only what could not be hardened (`D18`). |
+| 6. Show | **Trestle** (`trestle ui`, auto-started on the first draft) | A written draft. That it is read-only: the user looks here and decides in the chat. |
+| 7. Write and run | **The agent** calls `trestle plan write`, `trestle next`, `trestle verify`; **`verify` is Trestle's alone** | A validated plan. Never that a unit is done because the agent says so. |
+
+**Step 5 is the one that is enforced by refusal rather than by trust.** Under
+invariant 1 Trestle performs no inference, so it cannot make an agent think and
+cannot observe whether it did — the artifact is the only thing it can enforce.
+`trestle plan write --draft` therefore rejects a plan with no `premortem` block.
+An agent can write one without having thought; this makes skipping it visible and
+deliberate rather than impossible, which is the same honest limit as the override
+in invariant 3.
 
 What no step may assume: that a later step will catch its mistakes. Each step
 validates its own output, because under `D5` there is no orchestrator above them to
@@ -68,7 +77,7 @@ looking. Everything else in the command surface exists for the agent to call.
 ## Invariant 1 — No inference (`D0`)
 
 Trestle performs no inference. **No API key, no model call, no account, no vendor
-SDK.** Every "intelligent" step in the six above is reasoning the user's agent
+SDK.** Every "intelligent" step in the seven above is reasoning the user's agent
 performs, on the user's machine, under the user's existing configuration and against
 the user's existing bill.
 

@@ -4,9 +4,8 @@ Questions that must not be answered by an unattended agent. Each names the nodes
 it blocks. Resolve by appending the answer and marking `RESOLVED <date>`, then
 unblock the node in `graph.yaml`.
 
-**Seventeen are resolved** (`D0`–`D6`, `D8`–`D17`), one is deferred to v0.2.0
-(`D7`), and one is **open** (`D18` — the pre-mortem step). Nothing currently ready
-is blocked on it; it blocks T07 and T14, which are several layers out.
+**All eighteen are resolved** (`D0`–`D6`, `D8`–`D18`) and one is deferred to v0.2.0
+(`D7`). Nothing blocks the graph.
 
 The two that shaped everything else are `D5` (control is inverted — the agent drives
 Trestle) and `D2` (one plan format with a `shape:` discriminator). Read those first
@@ -638,8 +637,10 @@ from dependencies is a separate question, and this is that one.
 
 ## D18 — Does a plan get a pre-mortem before the user sees it?
 
-**Blocks:** T07, T14, and — if the answer puts it in the plan — T02a/T02b —
-**OPEN.**
+**Blocks:** T07, T14, T02a — **RESOLVED 2026-08-18: yes. The pre-mortem's job is
+to HARDEN the plan; `risks:` records only what could not be hardened. It is a
+blocking step before `plan write --draft`, run by the `verifier` where one is
+configured and by the `planner` otherwise.**
 
 Proposed: between **absorb** and **show**, the agent runs a pre-mortem against the
 draft. *Assume this plan failed. Why?* Then every failure mode it names must resolve
@@ -668,24 +669,72 @@ of four things, all checkable:
 A failure mode left as prose fails validation. That is the same move as `D9`'s
 override and T01's threat-model gaps: the escape hatch exists and is loud.
 
-Open sub-questions, which is why this is not resolved:
+### The three sub-questions, answered
 
-1. **Where does the output live** — a `risks:` section in the plan (format change,
-   so T02a and T02b), or a sibling `premortem.md` in the plan directory (no format
-   change, but a second artifact consumers must know about)?
-2. **Blocking or advisory** — does `trestle plan write --draft` refuse without it,
-   or does it warn? And if blocking, for every plan or only above a size or
-   confidence threshold?
-3. **Who runs it** — the `planner` role that wrote the plan, or, where a `verifier`
-   is configured, that one instead? The second is stronger for the same reason
-   `D14` makes review asymmetric: the author is the worst-placed party to imagine
-   their own plan failing.
+**1. The output is a hardened plan first, and `risks:` only for the residue.**
+
+This corrects the framing this decision was first written with. Listing "a unit, an
+oracle, a gate, or an accepted risk" as four equal outcomes is wrong: the first three
+are the *point*, and the fourth is the escape hatch. A pre-mortem that produced a
+tidy risk register and an unchanged plan has done nothing — it has documented the
+danger instead of removing it.
+
+So the default resolution of every failure mode is a change to the plan. `risks:`
+holds what genuinely cannot be hardened: an edge that depends on a third party, an
+unknown that only execution will resolve, a tradeoff deliberately accepted. Each
+entry needs a reason, exactly like `deferred`'s `revisit_when` — an entry without one
+is indistinguishable from something that was waved through.
+
+**2. Blocking, because we have no other lever.**
+
+The question asked whether the pre-mortem could happen "internally" instead. It
+cannot, and the reason is `D0`/`D5`: Trestle performs no inference and does not drive
+the agent. It can ship a prompt asking for a pre-mortem and it can refuse an
+artifact, but it cannot reach inside the agent's reasoning and it cannot observe
+whether the thinking happened. **The only enforcement Trestle owns is the artifact.**
+
+Therefore `trestle plan write --draft` refuses a plan with no `premortem` block. The
+block's *presence* is what distinguishes "ran and found nothing to harden" from
+"never ran" — an absent or empty `risks:` alone is ambiguous between the two, which
+is why the marker is a block rather than a list.
+
+Note what this does and does not buy, so nobody overclaims it later: a determined
+agent can write a `premortem` block without having thought. This makes skipping it
+**visible and deliberate** rather than impossible — the same honest limit as `D9`'s
+override, and it should be described that way in the docs.
+
+The ceremony objection was real and is answered by scale rather than by exemption: a
+small loop's pre-mortem legitimately finds nothing and costs one exchange. The block
+is on presence, never on volume, so a two-hour job pays two sentences and not a
+morning.
+
+**3. The `verifier` where one is configured, the `planner` otherwise.**
+
+The author is the worst-placed party to imagine their own plan failing — the same
+asymmetry `D14` uses to let a reviewer withhold `done` but never grant it. And the
+same constraint applies: **this must cost single-agent users nothing.** With no
+verifier configured the planner runs it and the flow is indistinguishable from one
+with no role model at all.
+
+### What this obliges, node by node
+
+- **T02a** — the format gains a `premortem` block: `run_by`, `findings` (each with
+  what it threatened and how the plan changed), and `risks` (each with `id`,
+  `risk`, `why_not_hardened`). Additive, so old plans still load.
+- **T02b** — no change required. Unknown keys already survive a round trip, so a
+  `premortem` block parses today; validating its shape belongs with the gauntlet.
+- **T07** — ships `templates/premortem.md`, and the gauntlet gains the check: a
+  draft with no `premortem` block is rejected, and a `risks` entry with no
+  `why_not_hardened` is rejected.
+- **T14** — the draft view shows the block, because a risk nobody reads is a risk
+  nobody accepted.
+- **T01** — `PRODUCT.md`'s flow gains the step, and its oracle asserts it.
 
 ---
 
 ## Open
 
-**Open: `D18`.** D0–D6 and D8–D17 are resolved; D7 is deferred to v0.2.0.
+**Open: none.** D0–D6 and D8–D18 are resolved; D7 is deferred to v0.2.0.
 
 That is not an invitation to stop thinking. `D3`'s "useful, not accurate" bar and
 `D9`'s "loud, not prevented" limit are the two most likely to be quietly violated

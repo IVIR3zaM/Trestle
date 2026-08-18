@@ -159,7 +159,17 @@ Three kinds of honesty come out of that, and they're the point:
   `npm run secrets:scan` — not in package.json."* Often the standard is right and
   the repo is behind, and you'd rather know now than at 2am.
 
-**5. Show.** The dashboard starts itself and your agent hands you a link straight to
+**5. Pre-mortem.** Before you're asked to look at anything, the plan gets stress
+tested: *assume this failed — why?* Whatever that turns up has to be **fixed in the
+plan** — a unit added, an extra oracle, a human gate — and only what genuinely can't
+be designed out is recorded as an accepted risk, with the reason it couldn't. A
+pre-mortem that produces a tidy risk list and an unchanged plan has done nothing.
+
+Trestle refuses to write a draft without it. It can't make your agent think — that's
+the same limit as everything else here — so what it enforces is that skipping the
+step is visible and deliberate rather than silent.
+
+**6. Show.** The dashboard starts itself and your agent hands you a link straight to
 the draft. Three views:
 
 - **Work view** — the plan itself: units, dependencies, what can run in
@@ -180,7 +190,7 @@ Trestle doesn't drive your agent, so an Approve button could flip a flag but cou
 start the work, and splitting one action across two surfaces is worse than the single
 word it would save.
 
-**6. Write and verify.** The plan is written to `.trestle/plans/` — plain files, in
+**7. Write and verify.** The plan is written to `.trestle/plans/` — plain files, in
 git, reviewable in a PR. As the work proceeds, **`trestle verify` runs each unit's
 oracle itself** and is the only thing that can mark a unit done.
 

@@ -80,6 +80,16 @@ don't use.
   Trestle orchestrates. Trestle drives nothing (`D5`), and a view implying otherwise
   would mislead about what happens if the user walks away.
 
+## The pre-mortem block (`D18`)
+
+The draft view shows `premortem` — what was found, what changed because of it, and
+which risks were accepted with their reasons. **A risk nobody reads is a risk nobody
+accepted**, and this view is the moment a human is deciding whether to approve.
+
+Show findings and risks distinctly: a finding is a danger that was removed, a risk is
+one being carried. Collapsing them into one list loses the difference the format
+exists to record.
+
 ## Acceptance
 
 - `cargo test -p trestle-ui --test work_view` — renders all three shapes from

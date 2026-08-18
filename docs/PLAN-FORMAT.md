@@ -138,6 +138,67 @@ readiness and estimates are not polluted by work nobody intends to do this time.
 entry without `revisit_when` is indistinguishable from something that was quietly
 dropped, so it is required.
 
+## The pre-mortem
+
+Required before a draft is shown to a human (`D18`). Its purpose is **not** to
+produce a risk register — it is to make the plan better. *Assume this plan failed;
+why?* Every answer that can be turned into a change to the plan **must** be, and
+`risks` holds only the residue.
+
+A pre-mortem that produced a tidy list and an unchanged plan has done nothing. It
+documented the danger instead of removing it.
+
+| Key | Required | Meaning |
+|---|---|---|
+| `premortem` | yes, before `plan write --draft` | The block as a whole. Its presence is what distinguishes *ran and found nothing* from *never ran*. |
+| `run_by` | yes | `verifier` where one is configured, `planner` otherwise. An author is the worst-placed party to imagine their own plan failing (`D14`). |
+| `findings` | yes | What was found **and what changed because of it**. May be empty on a small plan. |
+| `id` | yes | e.g. `F1`. |
+| `failure` | yes | The failure mode imagined. |
+| `hardened_by` | yes | How the plan changed: a unit added or altered, an extra oracle, a human gate. |
+| `units` | — | The unit ids touched. |
+| `risks` | yes | Only what could **not** be hardened. May be empty. |
+| `risk` | yes | The danger being accepted. |
+| `why_not_hardened` | yes | Why it could not be designed out. |
+
+`why_not_hardened` is required for the same reason `deferred` requires
+`revisit_when`: an entry without one is indistinguishable from something that was
+waved through.
+
+```yaml
+premortem:
+  run_by: verifier
+  findings:
+    - id: F1
+      failure: >
+        Unit 4 is marked done by a test suite that never runs the build, so a
+        broken build survives to unit 7.
+      hardened_by: added `make build` as an extra oracle on unit 4
+      units: ["4"]
+  risks:
+    - id: K1
+      risk: The upstream API may change shape mid-plan.
+      why_not_hardened: >
+        Nothing in this repository can detect it, and the vendor publishes no
+        version feed. Units 6 and 7 would need rework if it happens.
+      units: ["6", "7"]
+```
+
+### What this does and does not buy
+
+`trestle plan write --draft` refuses a plan with no `premortem` block, because under
+`D0` and `D5` **the artifact is the only thing Trestle can enforce.** It performs no
+inference and does not drive the agent, so it cannot reach into the agent's reasoning
+and cannot observe whether the thinking happened.
+
+An agent can therefore write a `premortem` block without having thought about
+anything. This makes skipping the step **visible and deliberate rather than
+impossible** — the same honest limit as the `D9` override, and it should be described
+that way wherever it is described at all.
+
+The cost is bounded by design: the block is required by *presence*, never by volume.
+A two-hour loop's pre-mortem legitimately finds nothing and costs two sentences.
+
 ## status.yaml
 
 The only file execution writes.

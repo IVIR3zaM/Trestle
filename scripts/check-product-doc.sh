@@ -4,7 +4,7 @@ set -euo pipefail
 # Oracle for T01: product contract + privacy threat model
 #
 # Asserts that docs/PRODUCT.md and docs/THREAT-MODEL.md exist and say the things
-# the rest of the graph is checked against: the six-step flow with step ownership,
+# the rest of the graph is checked against: the seven-step flow with step ownership,
 # the three architectural invariants, the v0.1.0 non-goals, and a channel table in
 # which every row carries a countermeasure and either a named test or a declared
 # gap.
@@ -60,11 +60,11 @@ if [ $failures -ne 0 ]; then
     exit 1
 fi
 
-echo "Checking the six-step flow and its ownership..."
+echo "Checking the seven-step flow and its ownership..."
 # The flow is only useful if a reader can tell whose step each one is: under D5 the
 # agent and Trestle alternate, and a reader who gets that backwards designs the next
 # component backwards.
-for step in survey interrogate shape absorb show "write"; do
+for step in survey interrogate shape absorb "pre-mortem" show "write"; do
     assert_in "flow names the '$step' step" "^\|.*$step" "$PRODUCT"
 done
 assert_in "flow table has an owner column" "^\|[^|]*step[^|]*\|[^|]*(whose|owner|run by)" "$PRODUCT"
@@ -96,6 +96,14 @@ echo "Checking the limit of the unforgeable-progress claim is stated..."
 assert_in "override path is stated" "override" "$PRODUCT"
 assert_in "override is described as loud rather than prevented" \
     "loud.*(not|rather than).*prevent" "$PRODUCT"
+
+echo "Checking the pre-mortem's limit is stated..."
+# D18: write refuses without the block, but an agent can write one without
+# thinking. A doc claiming the step is guaranteed would be overclaiming exactly
+# as a doc claiming the override is prevented would.
+assert_in "pre-mortem step is stated" "pre-mortem" "$PRODUCT"
+assert_in "the limit of the pre-mortem is stated" \
+    "(visible and deliberate|cannot make an agent think|cannot observe whether)" "$PRODUCT"
 
 echo "Checking the v0.1.0 non-goals..."
 assert_in "non-goals section exists" "^#+ .*not (in|do).*v0\.1\.0|^#+ .*out of scope" "$PRODUCT"
