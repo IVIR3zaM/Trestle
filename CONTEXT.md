@@ -158,39 +158,53 @@ then stop*.
 
 ## Current state
 
-Nothing is built. `plan/v0.1.0/` has 27 nodes; `make status` reports
-`0/27 done · 2 ready (1 unattended, 1 gated)`.
+**Six nodes are done and CI is green on `main`.** `make status` is authoritative;
+as of 2026-08-18 it reports `6/28 done · 5 ready (3 unattended, 2 gated)`.
 
-The two ready nodes are **T00** (the Cargo workspace, lints and CI — mechanical, no
-decision needed) and **T01** (the product contract, human-gated deliberately). They
-have no dependency on each other, so T00 can proceed while T01 is being thought
-about.
+| Done | What now exists |
+|---|---|
+| T00 | the workspace, `fmt`/`clippy --all-targets`/`deny`, CI |
+| T01 | `docs/PRODUCT.md`, `docs/THREAT-MODEL.md` — 17 channels, 3 declared gaps |
+| T02a | `docs/PLAN-FORMAT.md`, `schema/plan.schema.json`, `fixtures/expressed/` |
+| T02b | `crates/trestle-plan` — parser, round-trip, error-message quality |
+| T05 | `crates/trestle-survey` — code graph, oracles, T03's shape signals |
+| T16 | `crates/trestle-egress` — the privacy guarantee, enforced on Linux in CI |
 
-**All fifteen decisions are resolved.** Nothing in the graph is blocked on one.
+**T02 was split** into T02a (format, human-gated) and T02b (parser). Everything that
+depended on T02 now depends on T02b, which subsumes T02a. The original node file is
+kept as the record of why.
+
+Ready now: **T06, T08, T12** unattended, **T03 and T04** human-gated. T03 completes
+the vertical slice and leads to the **T28** gate.
+
+**All seventeen decisions are resolved.** Nothing in the graph is blocked on one.
 
 `plan/v0.2.0/` holds the deferred unattended lane (T21, T22) with its
 specifications intact.
 
-## What to do first
+The repo is **public**, has a live remote, and CI runs on every push. `DEVELOPING.md`
+carries four working rules learned by breaking them — the load-bearing one being that
+an isolated worktree branches from `origin/main`, so unpushed work is invisible to a
+subagent.
 
-**T00**, which needs no decision and no permission: the Cargo workspace, the
-`trestle` binary shell, `fmt`/`clippy`/`deny` config, and a CI workflow. Every other
-oracle assumes it exists.
+## What to do next
 
-**T01** in parallel, interactively — it's gated for a reason. Its threat-model
-channel table is what T16 turns into tests, and it needs four channels the original
-node predated: the MCP server, `trestle init` writing outside `.trestle/`, embedded
-assets, and the absence of update checks.
+**T03 — finish the vertical slice.** Human-gated, and the only thing standing between
+here and **T28**, the gate that runs `trestle survey` and `trestle shape` against real
+repositories and asks whether the shape answer is any good. T05 already emits every
+signal it needs. Read the note at the top of its node file first: T05 holds its own
+copy of the signal list because `trestle-shape` did not exist yet, and the two must be
+pointed at each other rather than left to drift.
 
-Then **the vertical slice**: T05 (survey) → T03 (shape rubric) → **T28**, a human
-gate that runs `trestle survey` and `trestle shape` against five real repositories
-and asks whether the answer is any good. T07 waits on T28, so nothing that *builds
-on* the shape decision starts before a human has confirmed the shape decision is
-worth building on. T02, T04 and T16 don't depend on it and run alongside.
+**T04 — the other gate**, and cheap for a human. It unblocks T19 and, through T17, the
+whole `init`/MCP/packaging tail.
 
-That ordering is deliberate: without it, nothing is runnable until T17 — six layers
-deep — and the first feedback on the product's central claim would arrive after
-almost all the cost was spent.
+**T06, T08, T12 — three unattended nodes that can run in parallel**, since their
+crates are disjoint. One worktree per agent, and push before dispatching.
+
+The ordering rationale still holds: without the slice, nothing is runnable until T17 —
+six layers deep — and the first feedback on the product's central claim would arrive
+after almost all the cost was spent.
 
 ## Things not to get wrong
 

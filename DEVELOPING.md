@@ -154,6 +154,20 @@ Carried from `docs/PRIOR-SHAPES.md`, and non-negotiable here:
 The first three are exactly what T07's gauntlet enforces on plans Trestle produces.
 A rule this repo won't hold itself to is a rule the product shouldn't ship.
 
+Four more, learned by breaking them rather than by foresight:
+
+- **Push before dispatching an isolated agent.** A worktree branches from
+  `origin/main`, not local `HEAD`, so unpushed work simply is not there. Two agents
+  were once handed a tree missing the node they depended on.
+- **A local oracle pass is not the whole acceptance.** If a node's Acceptance names
+  CI, it is not done until CI is green on the pushed commit.
+- **Re-run the standing checks after any node that adds a crate** —
+  `fmt`, `clippy --all-targets`, `deny`, `test --workspace`, and the already-`done`
+  oracles. New crates are exactly what those guards exist to meet.
+- **A node file can be wrong, and saying so is the job.** T02b found the plan format
+  rejected its own worked example; T05 found its own base commit was stale. Both
+  reported instead of working around it, which is why both were cheap to fix.
+
 ## When the plan is wrong
 
 Expected, not exceptional. A missing edge is a normal discovery — add it, note it
@@ -168,8 +182,9 @@ If an ambiguity appears that you can't resolve from the node file, append it to
 
 ## Not yet set up
 
-- Remote is `github.com/IVIR3zaM/Trestle`. While this is solo work, commit to
-  `main`; switch to one branch per node once there are contributors.
+- Remote is `github.com/IVIR3zaM/Trestle`, **public**, with CI green on every push.
+  While this is solo work, commit to `main` and push each node; switch to one branch
+  per node once there are contributors.
 - Licensed **Apache-2.0** (`LICENSE`), with `CONTRIBUTING.md` and
   `CODE_OF_CONDUCT.md` in place. The contribution to invite is a harness
   integration, which `D10` made data rather than code.

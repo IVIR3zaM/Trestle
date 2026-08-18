@@ -48,6 +48,25 @@ without the format, the synthesis prompt, the writer or the executors. **T28 jud
 that answer before the rest of the graph is built on it.** Keep this node free of
 the plan format so that stays true.
 
+## One thing T05 left you — read before designing the signal set
+
+T05 is done, and `trestle_survey::survey()` already emits the signals this node
+scores. But `trestle-shape` did not exist when it was written, so T05 holds its own
+canonical list in `shape_signals::SIGNAL_NAMES` and asserts its JSON output covers
+every entry.
+
+**That is two lists of the same thing, and they will drift.** Point one at the other
+as the first act of this node — either this crate imports T05's list, or T05's test
+imports this one. Do not leave both. A survey emitting a signal the rubric ignores,
+or a rubric scoring one the survey stopped measuring, fails silently and looks like
+a bad recommendation rather than a wiring bug.
+
+Also inherited from T05, and relevant to how much any signal is worth: every edge
+carries a `heuristic` flag, and **every co-change edge is heuristic
+unconditionally**. The parallelism signal is computed over a graph that is partly
+heuristic, so its confidence has to reflect that rather than treating all edges
+alike.
+
 ## Signals
 
 Each is derivable from the survey (T05) or from the user's goal. The rubric must
