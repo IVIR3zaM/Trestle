@@ -14,7 +14,9 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # v5 moved the action to Node 24; v4 is force-migrated by the runner and
+      # warns on every run. v7 is the current major.
+      - uses: actions/checkout@v7
 
       - uses: dtolnay/rust-toolchain@stable
         with:
