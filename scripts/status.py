@@ -21,6 +21,7 @@ import os
 import re
 import shutil
 import sys
+import textwrap
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -195,13 +196,19 @@ def print_graph():
 
 def print_mermaid():
     """Mermaid rather than DOT: GitHub, this repo's own markdown and every editor
-    preview render it without installing graphviz."""
+    preview render it without installing graphviz.
+
+    Left to right, because the graph is ten layers deep and at most six wide —
+    top-down puts the long dimension against the short axis of every screen it
+    gets read on, and the edges cross more the further they travel."""
     print("```mermaid")
-    print("flowchart TD")
+    print("flowchart LR")
     for n in nodes:
         gate = " ⛔" if n.get("gate") == "human" else ""
         # A double quote in a title would end the label early and break the diagram.
-        title = n["title"].replace('"', "'")
+        # Wrapped because left-to-right spends width on depth: one long label sets
+        # the width of its whole column.
+        title = "<br/>".join(textwrap.wrap(n["title"].replace('"', "'"), 26))
         if is_done(n):
             cls = "done"
         elif is_ready(n):
