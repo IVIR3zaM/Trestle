@@ -12,7 +12,7 @@ do that for itself yet, so its own development runs on hand-written scaffolding:
 | the harness maps tiers to models | `.claude/agents/trestle-{cheap,standard,deep}.md` |
 | `trestle next` | `make status` |
 | `trestle verify` | the executor runs the oracle itself |
-| `trestle status` / the dashboard | `make status`, and reading files |
+| `trestle status` / the dashboard | `make status`, `make graph`, and reading files |
 
 **Replacing each row with the real thing is the milestone that matters.** When T09,
 T10, T11 and T23 land, run `trestle init` on this repo and delete the bootstrap
@@ -87,8 +87,11 @@ inherits the protection.
 
 ## Order worth following
 
-`make status` is authoritative; this is the same information as layers, so you can
-see which tracks are genuinely independent:
+`make status` is authoritative. `make graph` draws it by layer — everything on a
+row can run in parallel, and each node shows what it needs and what it unlocks —
+and `make graph-mermaid` emits the same graph as a mermaid flowchart if you want
+boxes and arrows. The listing below is the same information, kept here so the
+shape of the plan survives without running anything:
 
 ```
 0.  T00  T01                     workspace (cheap, unblocked) + the product gate
